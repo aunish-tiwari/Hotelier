@@ -5,34 +5,34 @@
     <meta charset="utf-8">
     <title>Settings - Hotelier Admin</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    
+
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Icon Font Stylesheet -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Toastr -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
-    
+
     <style>
         /* Same sidebar styles */
         :root {
             --primary: #f3b33d;
             --secondary: #2c3e50;
         }
-        
+
         body {
             font-family: 'Heebo', sans-serif;
             background: #f4f6f9;
         }
-        
+
         .sidebar {
             position: fixed;
             top: 0;
@@ -44,92 +44,92 @@
             transition: all 0.3s;
             z-index: 1000;
         }
-        
+
         .sidebar-header {
             padding: 20px;
             text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .sidebar-header h3 {
             margin: 0;
             color: var(--primary);
         }
-        
+
         .sidebar-header p {
             font-size: 12px;
             margin: 5px 0 0;
             opacity: 0.7;
         }
-        
+
         .sidebar-menu {
             padding: 20px 0;
         }
-        
+
         .sidebar-menu .menu-item {
             padding: 12px 25px;
             display: flex;
             align-items: center;
-            color: rgba(255,255,255,0.8);
+            color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
             transition: all 0.3s;
         }
-        
+
         .sidebar-menu .menu-item:hover,
         .sidebar-menu .menu-item.active {
             background: rgba(243, 179, 61, 0.2);
             color: var(--primary);
         }
-        
+
         .sidebar-menu .menu-item i {
             width: 30px;
             font-size: 18px;
         }
-        
+
         .main-content {
             margin-left: 260px;
             padding: 20px;
         }
-        
+
         .navbar-top {
             background: white;
             padding: 15px 25px;
             border-radius: 10px;
             margin-bottom: 25px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
-        
+
         .content-card {
             background: white;
             border-radius: 10px;
             padding: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             margin-bottom: 25px;
         }
-        
+
         .btn-primary-custom {
             background: var(--primary);
             border: none;
             color: #2c3e50;
         }
-        
+
         .btn-primary-custom:hover {
             background: #e6a81e;
             color: #2c3e50;
         }
-        
+
         .nav-tabs .nav-link {
             color: #6c757d;
             border: none;
             padding: 10px 20px;
         }
-        
+
         .nav-tabs .nav-link.active {
             color: var(--primary);
             border-bottom: 2px solid var(--primary);
             background: transparent;
         }
-        
+
         .settings-icon {
             width: 40px;
             height: 40px;
@@ -140,22 +140,25 @@
             justify-content: center;
             margin-right: 15px;
         }
-        
+
         @media (max-width: 768px) {
             .sidebar {
                 left: -260px;
             }
+
             .sidebar.active {
                 left: 0;
             }
+
             .main-content {
                 margin-left: 0;
             }
+
             .menu-toggle {
                 display: block;
             }
         }
-        
+
         .menu-toggle {
             display: none;
             position: fixed;
@@ -169,18 +172,20 @@
             border-radius: 5px;
             cursor: pointer;
         }
-        
+
         .toggle-switch {
             position: relative;
             display: inline-block;
             width: 50px;
             height: 24px;
         }
+
         .toggle-switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
+
         .toggle-slider {
             position: absolute;
             cursor: pointer;
@@ -192,6 +197,7 @@
             transition: 0.4s;
             border-radius: 24px;
         }
+
         .toggle-slider:before {
             position: absolute;
             content: "";
@@ -203,20 +209,24 @@
             transition: 0.4s;
             border-radius: 50%;
         }
-        input:checked + .toggle-slider {
+
+        input:checked+.toggle-slider {
             background-color: var(--primary);
         }
-        input:checked + .toggle-slider:before {
+
+        input:checked+.toggle-slider:before {
             transform: translateX(26px);
         }
     </style>
 </head>
 
 <body>
+    <div id="header"></div>
+
     <button class="menu-toggle" id="menuToggle">
         <i class="fas fa-bars"></i>
     </button>
-    
+
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -263,26 +273,30 @@
             </a>
         </div>
     </div>
-    
+
     <!-- Main Content -->
     <div class="main-content">
         <div class="navbar-top d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="fas fa-cog me-2 text-primary"></i>System Settings</h5>
             <div class="d-flex align-items-center">
                 <div class="dropdown">
-                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
+                        data-bs-toggle="dropdown">
                         <i class="fas fa-user-circle fa-2x text-primary me-2"></i>
                         <span id="adminName">Admin User</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" id="logoutDropdown"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="#" id="logoutDropdown"><i
+                                    class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
                     </ul>
                 </div>
             </div>
         </div>
-        
+
         <!-- Settings Tabs -->
         <ul class="nav nav-tabs mb-4">
             <li class="nav-item">
@@ -311,7 +325,7 @@
                 </a>
             </li>
         </ul>
-        
+
         <div class="tab-content">
             <!-- General Settings -->
             <div class="tab-pane fade show active" id="general">
@@ -337,19 +351,22 @@
                             </div>
                             <div class="col-12 mb-3">
                                 <label class="form-label">Address</label>
-                                <textarea class="form-control" id="hotelAddress" rows="2">123 MG Road, Bangalore, India</textarea>
+                                <textarea class="form-control" id="hotelAddress"
+                                    rows="2">123 MG Road, Bangalore, India</textarea>
                             </div>
                             <div class="col-12 mb-3">
                                 <label class="form-label">About Us</label>
-                                <textarea class="form-control" id="aboutText" rows="4">Experience unparalleled luxury and comfort at Hotelier. We pride ourselves on delivering exceptional service, elegant accommodations, and unforgettable experiences for our guests.</textarea>
+                                <textarea class="form-control" id="aboutText"
+                                    rows="4">Experience unparalleled luxury and comfort at Hotelier. We pride ourselves on delivering exceptional service, elegant accommodations, and unforgettable experiences for our guests.</textarea>
                             </div>
                             <div class="col-12">
-                                <button type="button" class="btn btn-primary-custom" onclick="saveGeneralSettings()">Save Changes</button>
+                                <button type="button" class="btn btn-primary-custom"
+                                    onclick="saveGeneralSettings()">Save Changes</button>
                             </div>
                         </div>
                     </form>
                 </div>
-                
+
                 <div class="content-card">
                     <h5 class="mb-4"><i class="fas fa-clock text-primary me-2"></i>Working Hours</h5>
                     <div class="row">
@@ -362,12 +379,13 @@
                             <input type="time" class="form-control" id="checkoutTime" value="11:00">
                         </div>
                         <div class="col-12">
-                            <button type="button" class="btn btn-primary-custom" onclick="saveWorkingHours()">Save Changes</button>
+                            <button type="button" class="btn btn-primary-custom" onclick="saveWorkingHours()">Save
+                                Changes</button>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Payment Settings -->
             <div class="tab-pane fade" id="payment">
                 <div class="content-card">
@@ -402,12 +420,13 @@
                             <input type="text" class="form-control" id="stripePublishable" value="pk_test_xxxxxxxxxxxx">
                         </div>
                         <div class="col-12">
-                            <button type="button" class="btn btn-primary-custom" onclick="savePaymentSettings()">Save Changes</button>
+                            <button type="button" class="btn btn-primary-custom" onclick="savePaymentSettings()">Save
+                                Changes</button>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Email Settings -->
             <div class="tab-pane fade" id="email">
                 <div class="content-card">
@@ -436,12 +455,14 @@
                             </div>
                         </div>
                         <div class="col-12">
-                            <button type="button" class="btn btn-primary-custom" onclick="saveEmailSettings()">Save Changes</button>
-                            <button type="button" class="btn btn-outline-secondary ms-2" onclick="testEmail()">Send Test Email</button>
+                            <button type="button" class="btn btn-primary-custom" onclick="saveEmailSettings()">Save
+                                Changes</button>
+                            <button type="button" class="btn btn-outline-secondary ms-2" onclick="testEmail()">Send Test
+                                Email</button>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="content-card">
                     <h5 class="mb-4"><i class="fas fa-bell text-primary me-2"></i>Email Notifications</h5>
                     <div class="row">
@@ -464,12 +485,13 @@
                             </div>
                         </div>
                         <div class="col-12">
-                            <button type="button" class="btn btn-primary-custom" onclick="saveNotificationSettings()">Save Changes</button>
+                            <button type="button" class="btn btn-primary-custom"
+                                onclick="saveNotificationSettings()">Save Changes</button>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Booking Settings -->
             <div class="tab-pane fade" id="booking">
                 <div class="content-card">
@@ -498,11 +520,12 @@
                             </div>
                         </div>
                         <div class="col-12">
-                            <button type="button" class="btn btn-primary-custom" onclick="saveBookingSettings()">Save Changes</button>
+                            <button type="button" class="btn btn-primary-custom" onclick="saveBookingSettings()">Save
+                                Changes</button>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="content-card">
                     <h5 class="mb-4"><i class="fas fa-percent text-primary me-2"></i>Discount Settings</h5>
                     <div class="row">
@@ -523,12 +546,13 @@
                             <input type="number" class="form-control" id="longStayNights" value="7">
                         </div>
                         <div class="col-12">
-                            <button type="button" class="btn btn-primary-custom" onclick="saveDiscountSettings()">Save Changes</button>
+                            <button type="button" class="btn btn-primary-custom" onclick="saveDiscountSettings()">Save
+                                Changes</button>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Security Settings -->
             <div class="tab-pane fade" id="security">
                 <div class="content-card">
@@ -555,11 +579,12 @@
                             <input type="number" class="form-control" id="maxLoginAttempts" value="5">
                         </div>
                         <div class="col-12">
-                            <button type="button" class="btn btn-primary-custom" onclick="saveSecuritySettings()">Save Changes</button>
+                            <button type="button" class="btn btn-primary-custom" onclick="saveSecuritySettings()">Save
+                                Changes</button>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="content-card">
                     <h5 class="mb-4"><i class="fas fa-database text-primary me-2"></i>Backup & Maintenance</h5>
                     <div class="row">
@@ -574,7 +599,8 @@
                         <div class="col-12">
                             <div class="alert alert-warning">
                                 <i class="fas fa-exclamation-triangle me-2"></i>
-                                <strong>Warning:</strong> Performing maintenance operations may temporarily affect website functionality.
+                                <strong>Warning:</strong> Performing maintenance operations may temporarily affect
+                                website functionality.
                             </div>
                         </div>
                     </div>
@@ -586,7 +612,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    
+
     <script>
         toastr.options = {
             closeButton: true,
@@ -594,7 +620,7 @@
             positionClass: 'toast-top-right',
             timeOut: 3000
         };
-        
+
         function checkAuth() {
             const token = localStorage.getItem('adminToken');
             if (!token) {
@@ -605,46 +631,46 @@
                 document.getElementById('adminName').innerText = adminUser.name;
             }
         }
-        
+
         function saveGeneralSettings() {
             toastr.success('General settings saved successfully!');
         }
-        
+
         function saveWorkingHours() {
             toastr.success('Working hours updated successfully!');
         }
-        
+
         function savePaymentSettings() {
             toastr.success('Payment settings saved successfully!');
         }
-        
+
         function saveEmailSettings() {
             toastr.success('Email settings saved successfully!');
         }
-        
+
         function testEmail() {
             toastr.info('Sending test email...');
             setTimeout(() => {
                 toastr.success('Test email sent successfully!');
             }, 1500);
         }
-        
+
         function saveNotificationSettings() {
             toastr.success('Notification settings saved successfully!');
         }
-        
+
         function saveBookingSettings() {
             toastr.success('Booking settings saved successfully!');
         }
-        
+
         function saveDiscountSettings() {
             toastr.success('Discount settings saved successfully!');
         }
-        
+
         function saveSecuritySettings() {
             toastr.success('Security settings saved successfully!');
         }
-        
+
         function backupDatabase() {
             toastr.info('Preparing database backup...');
             setTimeout(() => {
@@ -661,14 +687,14 @@
                 toastr.success('Database backup downloaded!');
             }, 1000);
         }
-        
+
         function clearCache() {
             toastr.warning('Clearing system cache...');
             setTimeout(() => {
                 toastr.success('Cache cleared successfully!');
             }, 1500);
         }
-        
+
         function logout() {
             localStorage.removeItem('adminToken');
             localStorage.removeItem('adminUser');
@@ -677,16 +703,18 @@
                 window.location.href = 'login.html';
             }, 1000);
         }
-        
-        document.getElementById('menuToggle')?.addEventListener('click', function() {
+
+        document.getElementById('menuToggle')?.addEventListener('click', function () {
             document.getElementById('sidebar').classList.toggle('active');
         });
-        
+
         document.getElementById('logoutBtn')?.addEventListener('click', logout);
         document.getElementById('logoutDropdown')?.addEventListener('click', logout);
-        
+
         checkAuth();
     </script>
+
+    <div id="footer"></div>
 </body>
 
 </html>

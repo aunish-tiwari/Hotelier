@@ -5,37 +5,37 @@
     <meta charset="utf-8">
     <title>Manage Rooms - Hotelier Admin</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    
+
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Icon Font Stylesheet -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- DataTables -->
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    
+
     <!-- Toastr -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
-    
+
     <style>
         /* Same sidebar styles as dashboard */
         :root {
             --primary: #f3b33d;
             --secondary: #2c3e50;
         }
-        
+
         body {
             font-family: 'Heebo', sans-serif;
             background: #f4f6f9;
         }
-        
+
         .sidebar {
             position: fixed;
             top: 0;
@@ -47,101 +47,104 @@
             transition: all 0.3s;
             z-index: 1000;
         }
-        
+
         .sidebar-header {
             padding: 20px;
             text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .sidebar-header h3 {
             margin: 0;
             color: var(--primary);
         }
-        
+
         .sidebar-header p {
             font-size: 12px;
             margin: 5px 0 0;
             opacity: 0.7;
         }
-        
+
         .sidebar-menu {
             padding: 20px 0;
         }
-        
+
         .sidebar-menu .menu-item {
             padding: 12px 25px;
             display: flex;
             align-items: center;
-            color: rgba(255,255,255,0.8);
+            color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
             transition: all 0.3s;
         }
-        
+
         .sidebar-menu .menu-item:hover,
         .sidebar-menu .menu-item.active {
             background: rgba(243, 179, 61, 0.2);
             color: var(--primary);
         }
-        
+
         .sidebar-menu .menu-item i {
             width: 30px;
             font-size: 18px;
         }
-        
+
         .main-content {
             margin-left: 260px;
             padding: 20px;
         }
-        
+
         .navbar-top {
             background: white;
             padding: 15px 25px;
             border-radius: 10px;
             margin-bottom: 25px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
-        
+
         .content-card {
             background: white;
             border-radius: 10px;
             padding: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
-        
+
         .btn-primary-custom {
             background: var(--primary);
             border: none;
             color: #2c3e50;
         }
-        
+
         .btn-primary-custom:hover {
             background: #e6a81e;
             color: #2c3e50;
         }
-        
+
         .room-image {
             width: 60px;
             height: 60px;
             object-fit: cover;
             border-radius: 8px;
         }
-        
+
         @media (max-width: 768px) {
             .sidebar {
                 left: -260px;
             }
+
             .sidebar.active {
                 left: 0;
             }
+
             .main-content {
                 margin-left: 0;
             }
+
             .menu-toggle {
                 display: block;
             }
         }
-        
+
         .menu-toggle {
             display: none;
             position: fixed;
@@ -155,23 +158,37 @@
             border-radius: 5px;
             cursor: pointer;
         }
-        
+
         .status-badge {
             padding: 5px 10px;
             border-radius: 5px;
             font-size: 12px;
         }
-        .status-available { background: #d4edda; color: #155724; }
-        .status-booked { background: #f8d7da; color: #721c24; }
-        .status-maintenance { background: #fff3cd; color: #856404; }
+
+        .status-available {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-booked {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-maintenance {
+            background: #fff3cd;
+            color: #856404;
+        }
     </style>
 </head>
 
 <body>
+    <div id="header"></div>
+
     <button class="menu-toggle" id="menuToggle">
         <i class="fas fa-bars"></i>
     </button>
-    
+
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -218,29 +235,34 @@
             </a>
         </div>
     </div>
-    
+
     <!-- Main Content -->
     <div class="main-content">
         <div class="navbar-top d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="fas fa-bed me-2 text-primary"></i>Manage Rooms</h5>
             <div class="d-flex align-items-center">
-                <button class="btn btn-primary-custom btn-sm me-3" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                <button class="btn btn-primary-custom btn-sm me-3" data-bs-toggle="modal"
+                    data-bs-target="#addRoomModal">
                     <i class="fas fa-plus me-1"></i>Add New Room
                 </button>
                 <div class="dropdown">
-                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
+                        data-bs-toggle="dropdown">
                         <i class="fas fa-user-circle fa-2x text-primary me-2"></i>
                         <span id="adminName">Admin User</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" id="logoutDropdown"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="#" id="logoutDropdown"><i
+                                    class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
                     </ul>
                 </div>
             </div>
         </div>
-        
+
         <!-- Rooms Table -->
         <div class="content-card">
             <div class="table-responsive">
@@ -264,7 +286,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Add Room Modal -->
     <div class="modal fade" id="addRoomModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -312,7 +334,8 @@
                             </div>
                             <div class="col-12 mb-3">
                                 <label class="form-label">Amenities (comma separated)</label>
-                                <input type="text" class="form-control" id="roomAmenities" placeholder="WiFi, AC, TV, Mini Bar">
+                                <input type="text" class="form-control" id="roomAmenities"
+                                    placeholder="WiFi, AC, TV, Mini Bar">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Image URL</label>
@@ -336,7 +359,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Edit Room Modal -->
     <div class="modal fade" id="editRoomModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -408,7 +431,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Delete Confirmation Modal -->
     <div class="modal fade" id="deleteRoomModal" tabindex="-1">
         <div class="modal-dialog">
@@ -435,7 +458,7 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    
+
     <script>
         toastr.options = {
             closeButton: true,
@@ -443,10 +466,10 @@
             positionClass: 'toast-top-right',
             timeOut: 3000
         };
-        
+
         let roomsData = [];
         let roomsTable;
-        
+
         // Check admin authentication
         function checkAuth() {
             const token = localStorage.getItem('adminToken');
@@ -458,7 +481,7 @@
                 document.getElementById('adminName').innerText = adminUser.name;
             }
         }
-        
+
         // Mock rooms data
         function loadRooms() {
             roomsData = [
@@ -469,7 +492,7 @@
             ];
             renderRoomsTable();
         }
-        
+
         function renderRoomsTable() {
             const tbody = document.getElementById('roomsTableBody');
             tbody.innerHTML = roomsData.map(room => `
@@ -491,7 +514,7 @@
                     </td>
                 </tr>
             `).join('');
-            
+
             if (roomsTable) {
                 roomsTable.destroy();
             }
@@ -500,7 +523,7 @@
                 responsive: true
             });
         }
-        
+
         function addRoom() {
             const newRoom = {
                 id: roomsData.length + 1,
@@ -515,19 +538,19 @@
                 image: document.getElementById('roomImage').value || '../img/room-1.jpg',
                 status: document.getElementById('roomStatus').value
             };
-            
+
             if (!newRoom.name || !newRoom.type || !newRoom.price) {
                 toastr.warning('Please fill all required fields');
                 return;
             }
-            
+
             roomsData.push(newRoom);
             renderRoomsTable();
             document.getElementById('addRoomForm').reset();
             bootstrap.Modal.getInstance(document.getElementById('addRoomModal')).hide();
             toastr.success('Room added successfully!');
         }
-        
+
         function openEditModal(id) {
             const room = roomsData.find(r => r.id === id);
             if (room) {
@@ -545,11 +568,11 @@
                 new bootstrap.Modal(document.getElementById('editRoomModal')).show();
             }
         }
-        
+
         function updateRoom() {
             const id = parseInt(document.getElementById('editRoomId').value);
             const index = roomsData.findIndex(r => r.id === id);
-            
+
             if (index !== -1) {
                 roomsData[index] = {
                     ...roomsData[index],
@@ -569,12 +592,12 @@
                 toastr.success('Room updated successfully!');
             }
         }
-        
+
         function openDeleteModal(id) {
             document.getElementById('deleteRoomId').value = id;
             new bootstrap.Modal(document.getElementById('deleteRoomModal')).show();
         }
-        
+
         function confirmDeleteRoom() {
             const id = parseInt(document.getElementById('deleteRoomId').value);
             const index = roomsData.findIndex(r => r.id === id);
@@ -585,7 +608,7 @@
                 toastr.success('Room deleted successfully!');
             }
         }
-        
+
         function logout() {
             localStorage.removeItem('adminToken');
             localStorage.removeItem('adminUser');
@@ -594,19 +617,21 @@
                 window.location.href = 'login.html';
             }, 1000);
         }
-        
+
         // Sidebar toggle
-        document.getElementById('menuToggle')?.addEventListener('click', function() {
+        document.getElementById('menuToggle')?.addEventListener('click', function () {
             document.getElementById('sidebar').classList.toggle('active');
         });
-        
+
         document.getElementById('logoutBtn')?.addEventListener('click', logout);
         document.getElementById('logoutDropdown')?.addEventListener('click', logout);
-        
+
         // Initialize
         checkAuth();
         loadRooms();
     </script>
+
+    <div id="footer"></div>
 </body>
 
 </html>
