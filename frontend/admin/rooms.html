@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Manage Rooms - Hotelier Admin</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- DataTables -->
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    
+    <!-- Toastr -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+    
+    <style>
+        /* Same sidebar styles as dashboard */
+        :root {
+            --primary: #f3b33d;
+            --secondary: #2c3e50;
+        }
+        
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: #f4f6f9;
+        }
+        
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100%;
+            background: #2c3e50;
+            color: white;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-header h3 {
+            margin: 0;
+            color: var(--primary);
+        }
+        
+        .sidebar-header p {
+            font-size: 12px;
+            margin: 5px 0 0;
+            opacity: 0.7;
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .sidebar-menu .menu-item {
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-menu .menu-item:hover,
+        .sidebar-menu .menu-item.active {
+            background: rgba(243, 179, 61, 0.2);
+            color: var(--primary);
+        }
+        
+        .sidebar-menu .menu-item i {
+            width: 30px;
+            font-size: 18px;
+        }
+        
+        .main-content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+        
+        .navbar-top {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .btn-primary-custom {
+            background: var(--primary);
+            border: none;
+            color: #2c3e50;
+        }
+        
+        .btn-primary-custom:hover {
+            background: #e6a81e;
+            color: #2c3e50;
+        }
+        
+        .room-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -260px;
+            }
+            .sidebar.active {
+                left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .menu-toggle {
+                display: block;
+            }
+        }
+        
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        .status-available { background: #d4edda; color: #155724; }
+        .status-booked { background: #f8d7da; color: #721c24; }
+        .status-maintenance { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+
+<body>
+    <button class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-hotel me-2"></i>Hotelier</h3>
+            <p>Admin Dashboard</p>
+        </div>
+        <div class="sidebar-menu">
+            <a href="index.html" class="menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="rooms.html" class="menu-item active">
+                <i class="fas fa-bed"></i>
+                <span>Manage Rooms</span>
+            </a>
+            <a href="bookings.html" class="menu-item">
+                <i class="fas fa-calendar-check"></i>
+                <span>Manage Bookings</span>
+            </a>
+            <a href="users.html" class="menu-item">
+                <i class="fas fa-users"></i>
+                <span>Manage Users</span>
+            </a>
+            <a href="reviews.html" class="menu-item">
+                <i class="fas fa-star"></i>
+                <span>Manage Reviews</span>
+            </a>
+            <a href="reports.html" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Reports</span>
+            </a>
+            <a href="settings.html" class="menu-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <hr class="mx-3 my-3" style="border-color: rgba(255,255,255,0.1);">
+            <a href="#" class="menu-item" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+            <a href="../index.html" class="menu-item">
+                <i class="fas fa-globe"></i>
+                <span>View Website</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="navbar-top d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-bed me-2 text-primary"></i>Manage Rooms</h5>
+            <div class="d-flex align-items-center">
+                <button class="btn btn-primary-custom btn-sm me-3" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                    <i class="fas fa-plus me-1"></i>Add New Room
+                </button>
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle fa-2x text-primary me-2"></i>
+                        <span id="adminName">Admin User</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" id="logoutDropdown"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Rooms Table -->
+        <div class="content-card">
+            <div class="table-responsive">
+                <table id="roomsTable" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Image</th>
+                            <th>Room Name</th>
+                            <th>Type</th>
+                            <th>Price/Night</th>
+                            <th>Beds</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="roomsTableBody">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Room Modal -->
+    <div class="modal fade" id="addRoomModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus me-2 text-primary"></i>Add New Room</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addRoomForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Room Name *</label>
+                                <input type="text" class="form-control" id="roomName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Room Type *</label>
+                                <select class="form-select" id="roomType" required>
+                                    <option value="">Select Type</option>
+                                    <option value="Junior Suite">Junior Suite</option>
+                                    <option value="Executive Suite">Executive Suite</option>
+                                    <option value="Super Deluxe">Super Deluxe</option>
+                                    <option value="Presidential">Presidential</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Price per Night ($) *</label>
+                                <input type="number" class="form-control" id="roomPrice" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Capacity (Guests) *</label>
+                                <input type="number" class="form-control" id="roomCapacity" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Number of Beds *</label>
+                                <input type="number" class="form-control" id="roomBeds" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Number of Bathrooms *</label>
+                                <input type="number" class="form-control" id="roomBathrooms" required>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" id="roomDescription" rows="3"></textarea>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Amenities (comma separated)</label>
+                                <input type="text" class="form-control" id="roomAmenities" placeholder="WiFi, AC, TV, Mini Bar">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Image URL</label>
+                                <input type="text" class="form-control" id="roomImage" placeholder="img/room-1.jpg">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="roomStatus">
+                                    <option value="available">Available</option>
+                                    <option value="booked">Booked</option>
+                                    <option value="maintenance">Maintenance</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary-custom" onclick="addRoom()">Add Room</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Room Modal -->
+    <div class="modal fade" id="editRoomModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2 text-primary"></i>Edit Room</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editRoomForm">
+                        <input type="hidden" id="editRoomId">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Room Name *</label>
+                                <input type="text" class="form-control" id="editRoomName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Room Type *</label>
+                                <select class="form-select" id="editRoomType" required>
+                                    <option value="Junior Suite">Junior Suite</option>
+                                    <option value="Executive Suite">Executive Suite</option>
+                                    <option value="Super Deluxe">Super Deluxe</option>
+                                    <option value="Presidential">Presidential</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Price per Night ($) *</label>
+                                <input type="number" class="form-control" id="editRoomPrice" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Capacity (Guests) *</label>
+                                <input type="number" class="form-control" id="editRoomCapacity" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Number of Beds *</label>
+                                <input type="number" class="form-control" id="editRoomBeds" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Number of Bathrooms *</label>
+                                <input type="number" class="form-control" id="editRoomBathrooms" required>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" id="editRoomDescription" rows="3"></textarea>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Amenities (comma separated)</label>
+                                <input type="text" class="form-control" id="editRoomAmenities">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Image URL</label>
+                                <input type="text" class="form-control" id="editRoomImage">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="editRoomStatus">
+                                    <option value="available">Available</option>
+                                    <option value="booked">Booked</option>
+                                    <option value="maintenance">Maintenance</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary-custom" onclick="updateRoom()">Update Room</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteRoomModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-trash-alt me-2 text-danger"></i>Delete Room</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this room? This action cannot be undone.</p>
+                    <p class="text-danger"><strong>Note:</strong> This will also cancel all associated bookings.</p>
+                    <input type="hidden" id="deleteRoomId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteRoom()">Delete Room</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    
+    <script>
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            positionClass: 'toast-top-right',
+            timeOut: 3000
+        };
+        
+        let roomsData = [];
+        let roomsTable;
+        
+        // Check admin authentication
+        function checkAuth() {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                window.location.href = 'login.html';
+            }
+            const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+            if (adminUser.name) {
+                document.getElementById('adminName').innerText = adminUser.name;
+            }
+        }
+        
+        // Mock rooms data
+        function loadRooms() {
+            roomsData = [
+                { id: 1, name: 'Junior Suite', type: 'Junior Suite', price: 100, capacity: 4, beds: 3, bathrooms: 2, description: 'Experience luxury in our Junior Suite', amenities: 'WiFi, AC, TV, Mini Bar', image: '../img/room-1.jpg', status: 'available' },
+                { id: 2, name: 'Executive Suite', type: 'Executive Suite', price: 150, capacity: 4, beds: 3, bathrooms: 2, description: 'Perfect for business travelers', amenities: 'WiFi, AC, TV, Work Desk', image: '../img/room-2.jpg', status: 'available' },
+                { id: 3, name: 'Super Deluxe', type: 'Super Deluxe', price: 200, capacity: 6, beds: 4, bathrooms: 3, description: 'Spacious living areas', amenities: 'WiFi, AC, TV, Mini Bar, Jacuzzi', image: '../img/room-3.jpg', status: 'booked' },
+                { id: 4, name: 'Presidential Suite', type: 'Presidential', price: 500, capacity: 8, beds: 5, bathrooms: 4, description: 'Ultimate luxury experience', amenities: 'WiFi, AC, TV, Mini Bar, Jacuzzi, Private Pool', image: '../img/room-1.jpg', status: 'maintenance' }
+            ];
+            renderRoomsTable();
+        }
+        
+        function renderRoomsTable() {
+            const tbody = document.getElementById('roomsTableBody');
+            tbody.innerHTML = roomsData.map(room => `
+                <tr>
+                    <td>${room.id}</td>
+                    <td><img src="${room.image}" class="room-image" alt="${room.name}"></td>
+                    <td><strong>${room.name}</strong></td>
+                    <td>${room.type}</td>
+                    <td>$${room.price}</td>
+                    <td>${room.beds}</td>
+                    <td><span class="status-badge status-${room.status}">${room.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-primary-custom me-1" onclick="openEditModal(${room.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="openDeleteModal(${room.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            if (roomsTable) {
+                roomsTable.destroy();
+            }
+            roomsTable = $('#roomsTable').DataTable({
+                pageLength: 10,
+                responsive: true
+            });
+        }
+        
+        function addRoom() {
+            const newRoom = {
+                id: roomsData.length + 1,
+                name: document.getElementById('roomName').value,
+                type: document.getElementById('roomType').value,
+                price: parseInt(document.getElementById('roomPrice').value),
+                capacity: parseInt(document.getElementById('roomCapacity').value),
+                beds: parseInt(document.getElementById('roomBeds').value),
+                bathrooms: parseInt(document.getElementById('roomBathrooms').value),
+                description: document.getElementById('roomDescription').value,
+                amenities: document.getElementById('roomAmenities').value,
+                image: document.getElementById('roomImage').value || '../img/room-1.jpg',
+                status: document.getElementById('roomStatus').value
+            };
+            
+            if (!newRoom.name || !newRoom.type || !newRoom.price) {
+                toastr.warning('Please fill all required fields');
+                return;
+            }
+            
+            roomsData.push(newRoom);
+            renderRoomsTable();
+            document.getElementById('addRoomForm').reset();
+            bootstrap.Modal.getInstance(document.getElementById('addRoomModal')).hide();
+            toastr.success('Room added successfully!');
+        }
+        
+        function openEditModal(id) {
+            const room = roomsData.find(r => r.id === id);
+            if (room) {
+                document.getElementById('editRoomId').value = room.id;
+                document.getElementById('editRoomName').value = room.name;
+                document.getElementById('editRoomType').value = room.type;
+                document.getElementById('editRoomPrice').value = room.price;
+                document.getElementById('editRoomCapacity').value = room.capacity;
+                document.getElementById('editRoomBeds').value = room.beds;
+                document.getElementById('editRoomBathrooms').value = room.bathrooms;
+                document.getElementById('editRoomDescription').value = room.description || '';
+                document.getElementById('editRoomAmenities').value = room.amenities || '';
+                document.getElementById('editRoomImage').value = room.image;
+                document.getElementById('editRoomStatus').value = room.status;
+                new bootstrap.Modal(document.getElementById('editRoomModal')).show();
+            }
+        }
+        
+        function updateRoom() {
+            const id = parseInt(document.getElementById('editRoomId').value);
+            const index = roomsData.findIndex(r => r.id === id);
+            
+            if (index !== -1) {
+                roomsData[index] = {
+                    ...roomsData[index],
+                    name: document.getElementById('editRoomName').value,
+                    type: document.getElementById('editRoomType').value,
+                    price: parseInt(document.getElementById('editRoomPrice').value),
+                    capacity: parseInt(document.getElementById('editRoomCapacity').value),
+                    beds: parseInt(document.getElementById('editRoomBeds').value),
+                    bathrooms: parseInt(document.getElementById('editRoomBathrooms').value),
+                    description: document.getElementById('editRoomDescription').value,
+                    amenities: document.getElementById('editRoomAmenities').value,
+                    image: document.getElementById('editRoomImage').value,
+                    status: document.getElementById('editRoomStatus').value
+                };
+                renderRoomsTable();
+                bootstrap.Modal.getInstance(document.getElementById('editRoomModal')).hide();
+                toastr.success('Room updated successfully!');
+            }
+        }
+        
+        function openDeleteModal(id) {
+            document.getElementById('deleteRoomId').value = id;
+            new bootstrap.Modal(document.getElementById('deleteRoomModal')).show();
+        }
+        
+        function confirmDeleteRoom() {
+            const id = parseInt(document.getElementById('deleteRoomId').value);
+            const index = roomsData.findIndex(r => r.id === id);
+            if (index !== -1) {
+                roomsData.splice(index, 1);
+                renderRoomsTable();
+                bootstrap.Modal.getInstance(document.getElementById('deleteRoomModal')).hide();
+                toastr.success('Room deleted successfully!');
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminUser');
+            toastr.success('Logged out successfully');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1000);
+        }
+        
+        // Sidebar toggle
+        document.getElementById('menuToggle')?.addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+        
+        document.getElementById('logoutBtn')?.addEventListener('click', logout);
+        document.getElementById('logoutDropdown')?.addEventListener('click', logout);
+        
+        // Initialize
+        checkAuth();
+        loadRooms();
+    </script>
+</body>
+
+</html>
