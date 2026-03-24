@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Manage Users - Hotelier Admin</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- DataTables -->
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
+    <!-- Toastr -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+
+    <style>
+        /* Same sidebar styles as previous pages */
+        :root {
+            --primary: #f3b33d;
+            --secondary: #2c3e50;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: #f4f6f9;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100%;
+            background: #2c3e50;
+            color: white;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            color: var(--primary);
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            margin: 5px 0 0;
+            opacity: 0.7;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu .menu-item {
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .sidebar-menu .menu-item:hover,
+        .sidebar-menu .menu-item.active {
+            background: rgba(243, 179, 61, 0.2);
+            color: var(--primary);
+        }
+
+        .sidebar-menu .menu-item i {
+            width: 30px;
+            font-size: 18px;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+
+        .navbar-top {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-primary-custom {
+            background: var(--primary);
+            border: none;
+            color: #2c3e50;
+        }
+
+        .btn-primary-custom:hover {
+            background: #e6a81e;
+            color: #2c3e50;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .role-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .role-admin {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .role-user {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -260px;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header"></div>
+
+    <button class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-hotel me-2"></i>Hotelier</h3>
+            <p>Admin Dashboard</p>
+        </div>
+        <div class="sidebar-menu">
+            <a href="index.html" class="menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="rooms.html" class="menu-item">
+                <i class="fas fa-bed"></i>
+                <span>Manage Rooms</span>
+            </a>
+            <a href="bookings.html" class="menu-item">
+                <i class="fas fa-calendar-check"></i>
+                <span>Manage Bookings</span>
+            </a>
+            <a href="users.html" class="menu-item active">
+                <i class="fas fa-users"></i>
+                <span>Manage Users</span>
+            </a>
+            <a href="reviews.html" class="menu-item">
+                <i class="fas fa-star"></i>
+                <span>Manage Reviews</span>
+            </a>
+            <a href="reports.html" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Reports</span>
+            </a>
+            <a href="settings.html" class="menu-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <hr class="mx-3 my-3" style="border-color: rgba(255,255,255,0.1);">
+            <a href="#" class="menu-item" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+            <a href="../index.html" class="menu-item">
+                <i class="fas fa-globe"></i>
+                <span>View Website</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="navbar-top d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-users me-2 text-primary"></i>Manage Users</h5>
+            <div class="d-flex align-items-center">
+                <button class="btn btn-primary-custom btn-sm me-3" data-bs-toggle="modal"
+                    data-bs-target="#addUserModal">
+                    <i class="fas fa-plus me-1"></i>Add New User
+                </button>
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
+                        data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle fa-2x text-primary me-2"></i>
+                        <span id="adminName">Admin User</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="#" id="logoutDropdown"><i
+                                    class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <select class="form-select form-select-sm" id="filterRole">
+                    <option value="">All Roles</option>
+                    <option value="admin">Admin</option>
+                    <option value="user">User</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select form-select-sm" id="filterStatus">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="text" class="form-control form-control-sm" id="searchUser"
+                    placeholder="Search by name or email">
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary-custom btn-sm w-100" id="applyUserFilters">
+                    <i class="fas fa-search me-1"></i>Search
+                </button>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="content-card">
+            <div class="table-responsive">
+                <table id="usersTable" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Avatar</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th>Bookings</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-plus me-2 text-primary"></i>Add New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="userName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="userEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="userPhone">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password *</label>
+                            <input type="password" class="form-control" id="userPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-select" id="userRole">
+                                <option value="user">User</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="userStatus">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary-custom" onclick="addUser()">Add User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2 text-primary"></i>Edit User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUserForm">
+                        <input type="hidden" id="editUserId">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="editUserName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="editUserEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="editUserPhone">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password (leave blank to keep current)</label>
+                            <input type="password" class="form-control" id="editUserPassword">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-select" id="editUserRole">
+                                <option value="user">User</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="editUserStatus">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary-custom" onclick="updateUser()">Update User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View User Modal -->
+    <div class="modal fade" id="viewUserModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-circle me-2 text-primary"></i>User Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="user-avatar mx-auto mb-3" id="viewUserAvatar"
+                                style="width: 80px; height: 80px; font-size: 32px;">JD</div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-6 mb-2">
+                                    <strong>Name:</strong> <span id="viewUserName"></span>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <strong>Email:</strong> <span id="viewUserEmail"></span>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <strong>Phone:</strong> <span id="viewUserPhone"></span>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <strong>Role:</strong> <span id="viewUserRole"></span>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <strong>Status:</strong> <span id="viewUserStatus"></span>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <strong>Joined:</strong> <span id="viewUserJoined"></span>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <strong>Total Bookings:</strong> <span id="viewUserBookings"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <h6 class="mb-3">Recent Bookings</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Booking ID</th>
+                                    <th>Room</th>
+                                    <th>Check In</th>
+                                    <th>Check Out</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="viewUserBookingsList">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary-custom" id="editFromViewBtn">Edit User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete User Modal -->
+    <div class="modal fade" id="deleteUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-trash-alt me-2 text-danger"></i>Delete User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+                    <p class="text-danger"><strong>Note:</strong> This will also remove all bookings associated with
+                        this user.</p>
+                    <input type="hidden" id="deleteUserId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteUser()">Delete User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <script>
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            positionClass: 'toast-top-right',
+            timeOut: 3000
+        };
+
+        let usersData = [];
+        let usersTable;
+        let currentViewUserId = null;
+
+        // Check admin authentication
+        function checkAuth() {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                window.location.href = 'login.html';
+            }
+            const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+            if (adminUser.name) {
+                document.getElementById('adminName').innerText = adminUser.name;
+            }
+        }
+
+        // Mock users data
+        function loadUsers() {
+            usersData = [
+                { id: 1, name: 'Admin User', email: 'admin@hotelier.com', phone: '+91 98765 43210', role: 'admin', status: 'active', joined: '2024-01-01', bookings: 0, avatar: 'AU' },
+                { id: 2, name: 'John Doe', email: 'john@example.com', phone: '+91 98765 43211', role: 'user', status: 'active', joined: '2024-01-15', bookings: 3, avatar: 'JD' },
+                { id: 3, name: 'Jane Smith', email: 'jane@example.com', phone: '+91 98765 43212', role: 'user', status: 'active', joined: '2024-02-01', bookings: 2, avatar: 'JS' },
+                { id: 4, name: 'Mike Johnson', email: 'mike@example.com', phone: '+91 98765 43213', role: 'user', status: 'inactive', joined: '2024-01-20', bookings: 1, avatar: 'MJ' },
+                { id: 5, name: 'Sarah Wilson', email: 'sarah@example.com', phone: '+91 98765 43214', role: 'user', status: 'active', joined: '2024-02-10', bookings: 4, avatar: 'SW' },
+                { id: 6, name: 'Robert Brown', email: 'robert@example.com', phone: '+91 98765 43215', role: 'user', status: 'active', joined: '2024-02-15', bookings: 2, avatar: 'RB' },
+                { id: 7, name: 'Emily Davis', email: 'emily@example.com', phone: '+91 98765 43216', role: 'user', status: 'active', joined: '2024-02-20', bookings: 1, avatar: 'ED' },
+                { id: 8, name: 'David Miller', email: 'david@example.com', phone: '+91 98765 43217', role: 'user', status: 'inactive', joined: '2024-01-25', bookings: 0, avatar: 'DM' }
+            ];
+            renderUsersTable();
+        }
+
+        function renderUsersTable() {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = usersData.map(user => `
+                <tr>
+                    <td>${user.id}</td>
+                    <td><div class="user-avatar">${user.avatar}</div></td>
+                    <td><strong>${user.name}</strong></td>
+                    <td>${user.email}</td>
+                    <td>${user.phone}</td>
+                    <td><span class="role-badge role-${user.role}">${user.role}</span></td>
+                    <td><span class="role-badge status-${user.status}">${user.status}</span></td>
+                    <td>${user.joined}</td>
+                    <td>${user.bookings}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info me-1" onclick="viewUser(${user.id})" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-primary-custom me-1" onclick="openEditUserModal(${user.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="openDeleteUserModal(${user.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            if (usersTable) {
+                usersTable.destroy();
+            }
+            usersTable = $('#usersTable').DataTable({
+                pageLength: 10,
+                responsive: true,
+                order: [[0, 'desc']],
+                searching: false
+            });
+        }
+
+        function applyFilters() {
+            const role = document.getElementById('filterRole').value;
+            const status = document.getElementById('filterStatus').value;
+            const search = document.getElementById('searchUser').value.toLowerCase();
+
+            let filteredData = [...usersData];
+
+            if (role) {
+                filteredData = filteredData.filter(u => u.role === role);
+            }
+
+            if (status) {
+                filteredData = filteredData.filter(u => u.status === status);
+            }
+
+            if (search) {
+                filteredData = filteredData.filter(u =>
+                    u.name.toLowerCase().includes(search) ||
+                    u.email.toLowerCase().includes(search)
+                );
+            }
+
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = filteredData.map(user => `
+                <tr>
+                    <td>${user.id}</td>
+                    <td><div class="user-avatar">${user.avatar}</div></td>
+                    <td><strong>${user.name}</strong></td>
+                    <td>${user.email}</td>
+                    <td>${user.phone}</td>
+                    <td><span class="role-badge role-${user.role}">${user.role}</span></td>
+                    <td><span class="role-badge status-${user.status}">${user.status}</span></td>
+                    <td>${user.joined}</td>
+                    <td>${user.bookings}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info me-1" onclick="viewUser(${user.id})"><i class="fas fa-eye"></i></button>
+                        <button class="btn btn-sm btn-primary-custom me-1" onclick="openEditUserModal(${user.id})"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-danger" onclick="openDeleteUserModal(${user.id})"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+
+            if (usersTable) {
+                usersTable.destroy();
+            }
+            usersTable = $('#usersTable').DataTable({
+                pageLength: 10,
+                responsive: true,
+                searching: false
+            });
+
+            toastr.success(`Found ${filteredData.length} users`);
+        }
+
+        function addUser() {
+            const name = document.getElementById('userName').value;
+            const email = document.getElementById('userEmail').value;
+            const phone = document.getElementById('userPhone').value;
+            const password = document.getElementById('userPassword').value;
+            const role = document.getElementById('userRole').value;
+            const status = document.getElementById('userStatus').value;
+
+            if (!name || !email || !password) {
+                toastr.warning('Please fill all required fields');
+                return;
+            }
+
+            const newUser = {
+                id: usersData.length + 1,
+                name: name,
+                email: email,
+                phone: phone,
+                role: role,
+                status: status,
+                joined: new Date().toISOString().split('T')[0],
+                bookings: 0,
+                avatar: name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+            };
+
+            usersData.push(newUser);
+            renderUsersTable();
+            document.getElementById('addUserForm').reset();
+            bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
+            toastr.success('User added successfully!');
+        }
+
+        function openEditUserModal(id) {
+            const user = usersData.find(u => u.id === id);
+            if (user) {
+                document.getElementById('editUserId').value = user.id;
+                document.getElementById('editUserName').value = user.name;
+                document.getElementById('editUserEmail').value = user.email;
+                document.getElementById('editUserPhone').value = user.phone;
+                document.getElementById('editUserRole').value = user.role;
+                document.getElementById('editUserStatus').value = user.status;
+                document.getElementById('editUserPassword').value = '';
+                new bootstrap.Modal(document.getElementById('editUserModal')).show();
+            }
+        }
+
+        function updateUser() {
+            const id = parseInt(document.getElementById('editUserId').value);
+            const index = usersData.findIndex(u => u.id === id);
+
+            if (index !== -1) {
+                usersData[index].name = document.getElementById('editUserName').value;
+                usersData[index].email = document.getElementById('editUserEmail').value;
+                usersData[index].phone = document.getElementById('editUserPhone').value;
+                usersData[index].role = document.getElementById('editUserRole').value;
+                usersData[index].status = document.getElementById('editUserStatus').value;
+                usersData[index].avatar = usersData[index].name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+
+                const newPassword = document.getElementById('editUserPassword').value;
+                if (newPassword) {
+                    // In a real app, you would hash and save the new password
+                    console.log('Password updated for user', id);
+                }
+
+                renderUsersTable();
+                bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+                toastr.success('User updated successfully!');
+            }
+        }
+
+        function viewUser(id) {
+            const user = usersData.find(u => u.id === id);
+            if (user) {
+                currentViewUserId = id;
+                document.getElementById('viewUserName').innerText = user.name;
+                document.getElementById('viewUserEmail').innerText = user.email;
+                document.getElementById('viewUserPhone').innerText = user.phone || 'Not provided';
+                document.getElementById('viewUserRole').innerHTML = `<span class="role-badge role-${user.role}">${user.role}</span>`;
+                document.getElementById('viewUserStatus').innerHTML = `<span class="role-badge status-${user.status}">${user.status}</span>`;
+                document.getElementById('viewUserJoined').innerText = user.joined;
+                document.getElementById('viewUserBookings').innerText = user.bookings;
+                document.getElementById('viewUserAvatar').innerText = user.avatar;
+
+                // Mock recent bookings for this user
+                const mockBookings = [
+                    { id: 'BK-001', room: 'Executive Suite', checkIn: '2024-03-25', checkOut: '2024-03-28', total: 504, status: 'confirmed' },
+                    { id: 'BK-002', room: 'Junior Suite', checkIn: '2024-02-10', checkOut: '2024-02-13', total: 336, status: 'completed' }
+                ];
+
+                const bookingsList = document.getElementById('viewUserBookingsList');
+                bookingsList.innerHTML = mockBookings.map(b => `
+                    <tr>
+                        <td>${b.id}</td>
+                        <td>${b.room}</td>
+                        <td>${b.checkIn}</td>
+                        <td>${b.checkOut}</td>
+                        <td>$${b.total}</td>
+                        <td><span class="status-badge status-${b.status}">${b.status}</span></td>
+                    </tr>
+                `).join('');
+
+                new bootstrap.Modal(document.getElementById('viewUserModal')).show();
+            }
+        }
+
+        function openDeleteUserModal(id) {
+            document.getElementById('deleteUserId').value = id;
+            new bootstrap.Modal(document.getElementById('deleteUserModal')).show();
+        }
+
+        function confirmDeleteUser() {
+            const id = parseInt(document.getElementById('deleteUserId').value);
+            const index = usersData.findIndex(u => u.id === id);
+            if (index !== -1) {
+                usersData.splice(index, 1);
+                renderUsersTable();
+                bootstrap.Modal.getInstance(document.getElementById('deleteUserModal')).hide();
+                toastr.success('User deleted successfully!');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminUser');
+            toastr.success('Logged out successfully');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1000);
+        }
+
+        // Event Listeners
+        document.getElementById('menuToggle')?.addEventListener('click', function () {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+
+        document.getElementById('applyUserFilters')?.addEventListener('click', applyFilters);
+        document.getElementById('logoutBtn')?.addEventListener('click', logout);
+        document.getElementById('logoutDropdown')?.addEventListener('click', logout);
+        document.getElementById('editFromViewBtn')?.addEventListener('click', function () {
+            bootstrap.Modal.getInstance(document.getElementById('viewUserModal')).hide();
+            openEditUserModal(currentViewUserId);
+        });
+
+        // Initialize
+        checkAuth();
+        loadUsers();
+    </script>
+
+    <div id="footer"></div>
+</body>
+
+</html>

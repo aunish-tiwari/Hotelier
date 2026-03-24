@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Manage Reviews - Hotelier Admin</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- DataTables -->
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
+    <!-- Toastr -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+
+    <style>
+        /* Sidebar styles (same as previous) */
+        :root {
+            --primary: #f3b33d;
+            --secondary: #2c3e50;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: #f4f6f9;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100%;
+            background: #2c3e50;
+            color: white;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            color: var(--primary);
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            margin: 5px 0 0;
+            opacity: 0.7;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu .menu-item {
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .sidebar-menu .menu-item:hover,
+        .sidebar-menu .menu-item.active {
+            background: rgba(243, 179, 61, 0.2);
+            color: var(--primary);
+        }
+
+        .sidebar-menu .menu-item i {
+            width: 30px;
+            font-size: 18px;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+
+        .navbar-top {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-primary-custom {
+            background: var(--primary);
+            border: none;
+            color: #2c3e50;
+        }
+
+        .btn-primary-custom:hover {
+            background: #e6a81e;
+            color: #2c3e50;
+        }
+
+        .review-card {
+            border-left: 4px solid var(--primary);
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .review-card:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .review-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .rating-stars {
+            color: #ffc107;
+            font-size: 14px;
+        }
+
+        .review-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-flagged {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .filter-bar {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -260px;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .rating-average {
+            background: linear-gradient(135deg, #f3b33d, #e67e22);
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+        }
+
+        .rating-stats-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .rating-stats-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header"></div>
+
+    <button class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-hotel me-2"></i>Hotelier</h3>
+            <p>Admin Dashboard</p>
+        </div>
+        <div class="sidebar-menu">
+            <a href="index.html" class="menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="rooms.html" class="menu-item">
+                <i class="fas fa-bed"></i>
+                <span>Manage Rooms</span>
+            </a>
+            <a href="bookings.html" class="menu-item">
+                <i class="fas fa-calendar-check"></i>
+                <span>Manage Bookings</span>
+            </a>
+            <a href="users.html" class="menu-item">
+                <i class="fas fa-users"></i>
+                <span>Manage Users</span>
+            </a>
+            <a href="reviews.html" class="menu-item active">
+                <i class="fas fa-star"></i>
+                <span>Manage Reviews</span>
+            </a>
+            <a href="reports.html" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Reports</span>
+            </a>
+            <a href="settings.html" class="menu-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <hr class="mx-3 my-3" style="border-color: rgba(255,255,255,0.1);">
+            <a href="#" class="menu-item" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+            <a href="../index.html" class="menu-item">
+                <i class="fas fa-globe"></i>
+                <span>View Website</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="navbar-top d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-star me-2 text-primary"></i>Manage Reviews</h5>
+            <div class="d-flex align-items-center">
+                <button class="btn btn-primary-custom btn-sm me-3" id="exportReviewsBtn">
+                    <i class="fas fa-download me-1"></i>Export Reviews
+                </button>
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
+                        data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle fa-2x text-primary me-2"></i>
+                        <span id="adminName">Admin User</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="#" id="logoutDropdown"><i
+                                    class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rating Overview -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="rating-average text-center">
+                    <h2 class="mb-0" id="avgRating">4.8</h2>
+                    <div id="avgRatingStars" class="mb-2"></div>
+                    <p class="mb-0">Based on <span id="totalReviews">0</span> reviews</p>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="content-card">
+                    <h6 class="mb-3">Rating Distribution</h6>
+                    <div id="ratingDistribution"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="row align-items-end">
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Rating</label>
+                    <select class="form-select form-select-sm" id="filterRating">
+                        <option value="">All Ratings</option>
+                        <option value="5">5 Stars</option>
+                        <option value="4">4 Stars</option>
+                        <option value="3">3 Stars</option>
+                        <option value="2">2 Stars</option>
+                        <option value="1">1 Star</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Status</label>
+                    <select class="form-select form-select-sm" id="filterReviewStatus">
+                        <option value="">All Status</option>
+                        <option value="approved">Approved</option>
+                        <option value="pending">Pending</option>
+                        <option value="flagged">Flagged</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Room</label>
+                    <select class="form-select form-select-sm" id="filterReviewRoom">
+                        <option value="">All Rooms</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-primary-custom btn-sm w-100" id="applyReviewFilters">
+                        <i class="fas fa-filter me-1"></i>Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews List -->
+        <div class="content-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">All Reviews</h5>
+                <div class="input-group w-25">
+                    <input type="text" class="form-control form-control-sm" id="searchReview"
+                        placeholder="Search reviews...">
+                    <button class="btn btn-sm btn-outline-secondary" id="searchReviewBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="reviewsContainer"></div>
+            <div class="text-center mt-4" id="loadMoreReviews" style="display: none;">
+                <button class="btn btn-outline-primary" id="loadMoreBtn">Load More Reviews</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View/Reply Review Modal -->
+    <div class="modal fade" id="reviewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-comment me-2 text-primary"></i>Review Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="currentReviewId">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <div class="review-avatar mx-auto mb-3" id="modalReviewAvatar"
+                                style="width: 80px; height: 80px; font-size: 32px;">JD</div>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 id="modalReviewerName" class="mb-1">John Doe</h6>
+                                    <div id="modalRatingStars" class="mb-2"></div>
+                                </div>
+                                <span id="modalReviewStatus" class="review-status"></span>
+                            </div>
+                            <p class="text-muted small" id="modalReviewDate">March 15, 2024</p>
+                            <p><strong>Room:</strong> <span id="modalRoomName">Executive Suite</span></p>
+                            <p id="modalReviewComment" class="mt-3">Amazing experience! The staff was very friendly and
+                                the room was spotless. Will definitely come back!</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <h6 class="mb-3"><i class="fas fa-reply me-2 text-primary"></i>Admin Response</h6>
+                    <textarea class="form-control" id="adminResponse" rows="3"
+                        placeholder="Write your response to this review..."></textarea>
+                    <div id="existingResponse" class="mt-2" style="display: none;">
+                        <label class="form-label text-muted small">Previous Response:</label>
+                        <p id="existingResponseText" class="bg-light p-2 rounded"></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="me-auto">
+                        <button class="btn btn-sm btn-danger" id="flagReviewBtn" onclick="flagReview()">
+                            <i class="fas fa-flag me-1"></i>Flag as Inappropriate
+                        </button>
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary-custom" onclick="saveAdminResponse()">
+                        <i class="fas fa-paper-plane me-1"></i>Post Response
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <script>
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            positionClass: 'toast-top-right',
+            timeOut: 3000
+        };
+
+        let reviewsData = [];
+        let roomsList = [];
+        let currentPage = 1;
+        let itemsPerPage = 10;
+
+        function checkAuth() {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                window.location.href = 'login.html';
+            }
+            const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+            if (adminUser.name) {
+                document.getElementById('adminName').innerText = adminUser.name;
+            }
+        }
+
+        // Mock reviews data
+        function loadReviews() {
+            reviewsData = [
+                { id: 1, user: { name: 'John Doe', email: 'john@example.com', avatar: 'JD' }, room: { id: 1, name: 'Executive Suite' }, rating: 5, comment: 'Absolutely amazing experience! The room was luxurious, staff was incredibly helpful, and the location was perfect. Will definitely book again!', date: '2024-03-15', status: 'approved', response: '' },
+                { id: 2, user: { name: 'Jane Smith', email: 'jane@example.com', avatar: 'JS' }, room: { id: 2, name: 'Junior Suite' }, rating: 4, comment: 'Great stay overall. The room was clean and comfortable. Only minor issue was the Wi-Fi speed, but otherwise excellent.', date: '2024-03-14', status: 'approved', response: 'Thank you for your feedback! We\'re looking into improving our Wi-Fi speed.' },
+                { id: 3, user: { name: 'Mike Johnson', email: 'mike@example.com', avatar: 'MJ' }, room: { id: 3, name: 'Super Deluxe' }, rating: 5, comment: 'Best hotel experience ever! The staff went above and beyond to make our stay memorable. The breakfast was delicious!', date: '2024-03-12', status: 'approved', response: '' },
+                { id: 4, user: { name: 'Sarah Wilson', email: 'sarah@example.com', avatar: 'SW' }, room: { id: 1, name: 'Executive Suite' }, rating: 3, comment: 'Decent stay but expected more for the price. Room was nice but AC was not working properly.', date: '2024-03-10', status: 'pending', response: '' },
+                { id: 5, user: { name: 'Robert Brown', email: 'robert@example.com', avatar: 'RB' }, room: { id: 2, name: 'Junior Suite' }, rating: 5, comment: 'Fantastic service! The concierge helped us plan our entire trip. Highly recommended!', date: '2024-03-08', status: 'approved', response: 'We\'re glad you enjoyed your stay! Hope to see you again soon.' },
+                { id: 6, user: { name: 'Emily Davis', email: 'emily@example.com', avatar: 'ED' }, room: { id: 3, name: 'Super Deluxe' }, rating: 2, comment: 'Disappointing experience. Room was not ready at check-in and the staff seemed overwhelmed.', date: '2024-03-05', status: 'flagged', response: '' },
+                { id: 7, user: { name: 'David Miller', email: 'david@example.com', avatar: 'DM' }, room: { id: 1, name: 'Executive Suite' }, rating: 4, comment: 'Great value for money. Comfortable room and friendly staff. Would stay again.', date: '2024-03-03', status: 'approved', response: 'Thank you for your review!' },
+                { id: 8, user: { name: 'Lisa Anderson', email: 'lisa@example.com', avatar: 'LA' }, room: { id: 2, name: 'Junior Suite' }, rating: 5, comment: 'Perfect getaway! The spa was incredible and the room was beautiful. Can\'t wait to come back!', date: '2024-03-01', status: 'approved', response: 'We\'re thrilled you enjoyed the spa! See you soon!' }
+            ];
+
+            // Get unique rooms for filter
+            roomsList = [...new Map(reviewsData.map(r => [r.room.id, { id: r.room.id, name: r.room.name }])).values()];
+            populateRoomFilter();
+            updateRatingStats();
+            renderReviews();
+        }
+
+        function populateRoomFilter() {
+            const filterRoom = document.getElementById('filterReviewRoom');
+            filterRoom.innerHTML = '<option value="">All Rooms</option>' +
+                roomsList.map(room => `<option value="${room.id}">${room.name}</option>`).join('');
+        }
+
+        function updateRatingStats() {
+            const total = reviewsData.length;
+            const avg = (reviewsData.reduce((sum, r) => sum + r.rating, 0) / total).toFixed(1);
+            document.getElementById('avgRating').innerText = avg;
+            document.getElementById('totalReviews').innerText = total;
+
+            // Display stars
+            const avgStars = document.getElementById('avgRatingStars');
+            avgStars.innerHTML = renderStars(parseFloat(avg));
+
+            // Rating distribution
+            const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+            reviewsData.forEach(r => distribution[r.rating]++);
+
+            const distContainer = document.getElementById('ratingDistribution');
+            distContainer.innerHTML = '';
+            for (let i = 5; i >= 1; i--) {
+                const count = distribution[i];
+                const percentage = total > 0 ? (count / total * 100) : 0;
+                distContainer.innerHTML += `
+                    <div class="d-flex align-items-center mb-2">
+                        <div style="width: 60px;">${i} Star${i > 1 ? 's' : ''}</div>
+                        <div class="flex-grow-1 mx-2">
+                            <div class="rating-stats-bar">
+                                <div class="rating-stats-fill" style="width: ${percentage}%;"></div>
+                            </div>
+                        </div>
+                        <div style="width: 50px;">${count}</div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderStars(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= Math.floor(rating)) {
+                    stars += '<i class="fas fa-star"></i>';
+                } else if (i === Math.floor(rating) + 1 && rating % 1 >= 0.5) {
+                    stars += '<i class="fas fa-star-half-alt"></i>';
+                } else {
+                    stars += '<i class="far fa-star"></i>';
+                }
+            }
+            return stars;
+        }
+
+        function renderReviews() {
+            const status = document.getElementById('filterReviewStatus').value;
+            const rating = document.getElementById('filterRating').value;
+            const roomId = document.getElementById('filterReviewRoom').value;
+            const search = document.getElementById('searchReview').value.toLowerCase();
+
+            let filteredData = [...reviewsData];
+
+            if (status) {
+                filteredData = filteredData.filter(r => r.status === status);
+            }
+            if (rating) {
+                filteredData = filteredData.filter(r => r.rating == rating);
+            }
+            if (roomId) {
+                filteredData = filteredData.filter(r => r.room.id == roomId);
+            }
+            if (search) {
+                filteredData = filteredData.filter(r =>
+                    r.user.name.toLowerCase().includes(search) ||
+                    r.comment.toLowerCase().includes(search)
+                );
+            }
+
+            // Pagination
+            const start = (currentPage - 1) * itemsPerPage;
+            const paginatedData = filteredData.slice(start, start + itemsPerPage);
+            const hasMore = start + itemsPerPage < filteredData.length;
+
+            const container = document.getElementById('reviewsContainer');
+            if (paginatedData.length === 0) {
+                container.innerHTML = '<div class="text-center py-5"><i class="fas fa-comments fa-3x text-muted mb-3"></i><p class="text-muted">No reviews found</p></div>';
+                document.getElementById('loadMoreReviews').style.display = 'none';
+                return;
+            }
+
+            container.innerHTML = paginatedData.map(review => `
+                <div class="review-card">
+                    <div class="d-flex">
+                        <div class="review-avatar me-3">${review.user.avatar}</div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">${review.user.name}</h6>
+                                    <div class="rating-stars mb-1">${renderStars(review.rating)}</div>
+                                    <small class="text-muted">${review.room.name} • ${review.date}</small>
+                                </div>
+                                <span class="review-status status-${review.status}">${review.status}</span>
+                            </div>
+                            <p class="mt-2 mb-2">${review.comment.substring(0, 150)}${review.comment.length > 150 ? '...' : ''}</p>
+                            ${review.response ? `<div class="bg-light p-2 rounded mt-2 small">
+                                <i class="fas fa-reply text-primary me-1"></i>
+                                <strong>Admin Response:</strong> ${review.response.substring(0, 100)}${review.response.length > 100 ? '...' : ''}
+                            </div>` : ''}
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-primary" onclick="openReviewModal(${review.id})">
+                                    <i class="fas fa-eye me-1"></i>View & Reply
+                                </button>
+                                ${review.status === 'pending' ? `
+                                    <button class="btn btn-sm btn-success ms-1" onclick="approveReview(${review.id})">
+                                        <i class="fas fa-check me-1"></i>Approve
+                                    </button>
+                                ` : ''}
+                                ${review.status === 'flagged' ? `
+                                    <button class="btn btn-sm btn-warning ms-1" onclick="unflagReview(${review.id})">
+                                        <i class="fas fa-check-circle me-1"></i>Unflag
+                                    </button>
+                                ` : ''}
+                                ${review.status !== 'flagged' ? `
+                                    <button class="btn btn-sm btn-danger ms-1" onclick="flagReviewById(${review.id})">
+                                        <i class="fas fa-flag me-1"></i>Flag
+                                    </button>
+                                ` : ''}
+                                <button class="btn btn-sm btn-danger ms-1" onclick="deleteReview(${review.id})">
+                                    <i class="fas fa-trash me-1"></i>Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('loadMoreReviews').style.display = hasMore ? 'block' : 'none';
+        }
+
+        function openReviewModal(id) {
+            const review = reviewsData.find(r => r.id === id);
+            if (review) {
+                document.getElementById('currentReviewId').value = review.id;
+                document.getElementById('modalReviewerName').innerText = review.user.name;
+                document.getElementById('modalReviewAvatar').innerText = review.user.avatar;
+                document.getElementById('modalRatingStars').innerHTML = renderStars(review.rating);
+                document.getElementById('modalReviewDate').innerText = review.date;
+                document.getElementById('modalRoomName').innerText = review.room.name;
+                document.getElementById('modalReviewComment').innerText = review.comment;
+                document.getElementById('modalReviewStatus').innerHTML = review.status;
+                document.getElementById('modalReviewStatus').className = `review-status status-${review.status}`;
+                document.getElementById('adminResponse').value = '';
+
+                if (review.response) {
+                    document.getElementById('existingResponse').style.display = 'block';
+                    document.getElementById('existingResponseText').innerText = review.response;
+                } else {
+                    document.getElementById('existingResponse').style.display = 'none';
+                }
+
+                const flagBtn = document.getElementById('flagReviewBtn');
+                if (review.status === 'flagged') {
+                    flagBtn.innerHTML = '<i class="fas fa-check-circle me-1"></i>Unflag';
+                    flagBtn.className = 'btn btn-sm btn-warning';
+                    flagBtn.setAttribute('onclick', 'unflagReviewFromModal()');
+                } else {
+                    flagBtn.innerHTML = '<i class="fas fa-flag me-1"></i>Flag as Inappropriate';
+                    flagBtn.className = 'btn btn-sm btn-danger';
+                    flagBtn.setAttribute('onclick', 'flagReviewFromModal()');
+                }
+
+                new bootstrap.Modal(document.getElementById('reviewModal')).show();
+            }
+        }
+
+        function saveAdminResponse() {
+            const id = parseInt(document.getElementById('currentReviewId').value);
+            const response = document.getElementById('adminResponse').value;
+            const index = reviewsData.findIndex(r => r.id === id);
+
+            if (index !== -1) {
+                if (response) {
+                    reviewsData[index].response = response;
+                    toastr.success('Response posted successfully!');
+                }
+                if (reviewsData[index].status === 'pending') {
+                    reviewsData[index].status = 'approved';
+                    toastr.info('Review has been approved');
+                }
+                renderReviews();
+                updateRatingStats();
+                bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
+            }
+        }
+
+        function approveReview(id) {
+            const index = reviewsData.findIndex(r => r.id === id);
+            if (index !== -1) {
+                reviewsData[index].status = 'approved';
+                renderReviews();
+                updateRatingStats();
+                toastr.success('Review approved successfully');
+            }
+        }
+
+        function flagReviewById(id) {
+            const index = reviewsData.findIndex(r => r.id === id);
+            if (index !== -1) {
+                reviewsData[index].status = 'flagged';
+                renderReviews();
+                updateRatingStats();
+                toastr.warning('Review has been flagged for review');
+            }
+        }
+
+        function flagReviewFromModal() {
+            const id = parseInt(document.getElementById('currentReviewId').value);
+            flagReviewById(id);
+            bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
+        }
+
+        function unflagReview(id) {
+            const index = reviewsData.findIndex(r => r.id === id);
+            if (index !== -1) {
+                reviewsData[index].status = 'approved';
+                renderReviews();
+                updateRatingStats();
+                toastr.success('Review has been unflagged');
+            }
+        }
+
+        function unflagReviewFromModal() {
+            const id = parseInt(document.getElementById('currentReviewId').value);
+            unflagReview(id);
+            bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
+        }
+
+        function flagReview() {
+            const id = parseInt(document.getElementById('currentReviewId').value);
+            const index = reviewsData.findIndex(r => r.id === id);
+            if (index !== -1) {
+                if (reviewsData[index].status === 'flagged') {
+                    reviewsData[index].status = 'approved';
+                    toastr.success('Review has been unflagged');
+                } else {
+                    reviewsData[index].status = 'flagged';
+                    toastr.warning('Review has been flagged');
+                }
+                renderReviews();
+                updateRatingStats();
+                bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
+            }
+        }
+
+        function deleteReview(id) {
+            if (confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+                const index = reviewsData.findIndex(r => r.id === id);
+                if (index !== -1) {
+                    reviewsData.splice(index, 1);
+                    renderReviews();
+                    updateRatingStats();
+                    toastr.success('Review deleted successfully');
+                }
+            }
+        }
+
+        function exportReviews() {
+            let csv = 'Review ID,Reviewer Name,Room,Rating,Comment,Date,Status,Admin Response\n';
+            reviewsData.forEach(review => {
+                csv += `"${review.id}","${review.user.name}","${review.room.name}",${review.rating},"${review.comment.replace(/"/g, '""')}","${review.date}","${review.status}","${(review.response || '').replace(/"/g, '""')}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `reviews_export_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            toastr.success('Reviews exported successfully');
+        }
+
+        function loadMore() {
+            currentPage++;
+            renderReviews();
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminUser');
+            toastr.success('Logged out successfully');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1000);
+        }
+
+        // Event Listeners
+        document.getElementById('menuToggle')?.addEventListener('click', function () {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+
+        document.getElementById('applyReviewFilters')?.addEventListener('click', function () {
+            currentPage = 1;
+            renderReviews();
+        });
+
+        document.getElementById('searchReviewBtn')?.addEventListener('click', function () {
+            currentPage = 1;
+            renderReviews();
+        });
+
+        document.getElementById('searchReview')?.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                currentPage = 1;
+                renderReviews();
+            }
+        });
+
+        document.getElementById('loadMoreBtn')?.addEventListener('click', loadMore);
+        document.getElementById('exportReviewsBtn')?.addEventListener('click', exportReviews);
+        document.getElementById('logoutBtn')?.addEventListener('click', logout);
+        document.getElementById('logoutDropdown')?.addEventListener('click', logout);
+
+        // Initialize
+        checkAuth();
+        loadReviews();
+    </script>
+
+    <div id="footer"></div>
+</body>
+
+</html>
