@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Hotelier - Booking Confirmation</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="lib/animate/animate.min.css" rel="stylesheet">
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
+    
+    <!-- Toastr for notifications -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+    
+    <style>
+        .confirmation-card {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .success-icon i {
+            font-size: 40px;
+            color: white;
+        }
+        .booking-details {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #6c757d;
+        }
+        .detail-value {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        .price-breakdown {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+        }
+        .total-amount {
+            background: #f3b33d;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .total-amount h3 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .action-buttons .btn {
+            padding: 12px 25px;
+            margin: 5px;
+        }
+        .invoice-download {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .invoice-download:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+        .countdown-timer {
+            font-size: 14px;
+            color: #dc3545;
+            font-weight: 500;
+        }
+        .share-buttons a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            margin: 0 5px;
+            transition: all 0.3s;
+        }
+        .share-buttons a:hover {
+            transform: translateY(-3px);
+        }
+        .share-buttons .facebook:hover { background: #1877f2; color: white; }
+        .share-buttons .twitter:hover { background: #1da1f2; color: white; }
+        .share-buttons .whatsapp:hover { background: #25d366; color: white; }
+        .share-buttons .email:hover { background: #ea4335; color: white; }
+        
+        @media print {
+            .no-print, .header-section, .footer-section, .action-buttons, .share-section {
+                display: none !important;
+            }
+            .confirmation-card {
+                box-shadow: none;
+                padding: 0;
+            }
+            body {
+                background: white;
+                padding: 20px;
+            }
+        }
+        
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+        .timeline-item {
+            display: flex;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        .timeline-icon {
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border: 2px solid #f3b33d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            z-index: 1;
+            background: white;
+        }
+        .timeline-icon.active {
+            background: #f3b33d;
+            color: white;
+        }
+        .timeline-content {
+            flex: 1;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 19px;
+            top: 40px;
+            bottom: -30px;
+            width: 2px;
+            background: #e9ecef;
+        }
+        .timeline-item:last-child::before {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-xxl bg-white p-0">
+        <!-- Spinner Start -->
+        <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <!-- Spinner End -->
+
+        <!-- Header Start -->
+        <div class="container-fluid bg-dark px-0 no-print">
+            <div class="row gx-0">
+                <div class="col-lg-3 bg-dark d-none d-lg-block">
+                    <a href="index.html" class="navbar-brand w-100 h-100 m-0 p-0 d-flex align-items-center justify-content-center">
+                        <h1 class="m-0 text-primary text-uppercase">Hotelier</h1>
+                    </a>
+                </div>
+                <div class="col-lg-9">
+                    <div class="row gx-0 bg-white d-none d-lg-flex">
+                        <div class="col-lg-7 px-5 text-start">
+                            <div class="h-100 d-inline-flex align-items-center py-2 me-4">
+                                <i class="fa fa-envelope text-primary me-2"></i>
+                                <p class="mb-0">info@hotelier.com</p>
+                            </div>
+                            <div class="h-100 d-inline-flex align-items-center py-2">
+                                <i class="fa fa-phone-alt text-primary me-2"></i>
+                                <p class="mb-0">+91 98765 43210</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-5 px-5 text-end">
+                            <div class="d-inline-flex align-items-center py-2">
+                                <a class="me-3" href="#"><i class="fab fa-facebook-f"></i></a>
+                                <a class="me-3" href="#"><i class="fab fa-twitter"></i></a>
+                                <a class="me-3" href="#"><i class="fab fa-linkedin-in"></i></a>
+                                <a class="me-3" href="#"><i class="fab fa-instagram"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <nav class="navbar navbar-expand-lg bg-dark navbar-dark p-3 p-lg-0">
+                        <a href="index.html" class="navbar-brand d-block d-lg-none">
+                            <h1 class="m-0 text-primary text-uppercase">Hotelier</h1>
+                        </a>
+                        <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+                            <div class="navbar-nav mr-auto py-0">
+                                <a href="index.html" class="nav-item nav-link">Home</a>
+                                <a href="about.html" class="nav-item nav-link">About</a>
+                                <a href="service.html" class="nav-item nav-link">Services</a>
+                                <a href="rooms.html" class="nav-item nav-link">Rooms</a>
+                                <div class="nav-item dropdown">
+                                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
+                                    <div class="dropdown-menu rounded-0 m-0">
+                                        <a href="booking.html" class="dropdown-item">Booking</a>
+                                        <a href="dashboard.html" class="dropdown-item" id="dashboardLink" style="display:none;">My Dashboard</a>
+                                        <a href="team.html" class="dropdown-item">Our Team</a>
+                                        <a href="testimonial.html" class="dropdown-item">Testimonial</a>
+                                    </div>
+                                </div>
+                                <a href="contact.html" class="nav-item nav-link">Contact</a>
+                            </div>
+                            <div id="authButtons">
+                                <a href="login.html" class="btn btn-primary rounded-0 py-2 px-4 me-2">Login</a>
+                                <a href="register.html" class="btn btn-outline-primary rounded-0 py-2 px-4">Register</a>
+                            </div>
+                            <div id="userInfo" style="display:none;" class="d-flex align-items-center">
+                                <span class="text-white me-3" id="userName"></span>
+                                <button class="btn btn-sm btn-danger" id="logoutBtn">Logout</button>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        <!-- Header End -->
+
+        <!-- Page Header Start -->
+        <div class="container-fluid page-header mb-5 p-0 no-print" style="background-image: url(img/carousel-1.jpg);">
+            <div class="container-fluid page-header-inner py-5">
+                <div class="container text-center pb-5">
+                    <h1 class="display-3 text-white mb-3 animated slideInDown">Booking Confirmed!</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center text-uppercase">
+                            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                            <li class="breadcrumb-item"><a href="booking.html">Booking</a></li>
+                            <li class="breadcrumb-item text-white active" aria-current="page">Confirmation</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        <!-- Page Header End -->
+
+        <!-- Confirmation Content Start -->
+        <div class="container-xxl py-5">
+            <div class="container">
+                <div id="loadingContent" class="text-center py-5">
+                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <p class="mt-3">Loading booking details...</p>
+                </div>
+                
+                <div id="confirmationContent" style="display: none;">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-10">
+                            <div class="confirmation-card p-4 p-lg-5">
+                                <!-- Success Icon -->
+                                <div class="text-center mb-4">
+                                    <div class="success-icon">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                    <h2 class="mt-3">Booking Confirmed!</h2>
+                                    <p class="text-muted">Your reservation has been successfully confirmed.</p>
+                                    <div class="countdown-timer mt-2" id="countdownTimer"></div>
+                                </div>
+                                
+                                <!-- Booking Reference -->
+                                <div class="alert alert-info text-center">
+                                    <i class="fas fa-ticket-alt me-2"></i>
+                                    <strong>Booking Reference:</strong> <span id="bookingRef">HOT-XXXX-XXXX</span>
+                                    <br>
+                                    <small class="text-muted">Please keep this reference for future communications</small>
+                                </div>
+                                
+                                <div class="row g-4 mt-3">
+                                    <!-- Booking Details -->
+                                    <div class="col-lg-6">
+                                        <h4 class="mb-3"><i class="fas fa-calendar-check text-primary me-2"></i>Booking Details</h4>
+                                        <div class="booking-details">
+                                            <div class="detail-row">
+                                                <span class="detail-label">Booking Date:</span>
+                                                <span class="detail-value" id="bookingDate">-</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Booking Status:</span>
+                                                <span class="detail-value"><span class="badge bg-success" id="bookingStatus">Confirmed</span></span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Payment Status:</span>
+                                                <span class="detail-value"><span class="badge bg-success" id="paymentStatus">Paid</span></span>
+                                            </div>
+                                        </div>
+                                        
+                                        <h4 class="mb-3 mt-4"><i class="fas fa-hotel text-primary me-2"></i>Room Details</h4>
+                                        <div class="booking-details">
+                                            <div class="detail-row">
+                                                <span class="detail-label">Room Name:</span>
+                                                <span class="detail-value" id="roomName">-</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Room Type:</span>
+                                                <span class="detail-value" id="roomType">-</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Check-in:</span>
+                                                <span class="detail-value" id="checkIn">-</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Check-out:</span>
+                                                <span class="detail-value" id="checkOut">-</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Nights:</span>
+                                                <span class="detail-value" id="nights">-</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Guests:</span>
+                                                <span class="detail-value" id="guests">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Guest Details & Price -->
+                                    <div class="col-lg-6">
+                                        <h4 class="mb-3"><i class="fas fa-user text-primary me-2"></i>Guest Details</h4>
+                                        <div class="booking-details">
+                                            <div class="detail-row">
+                                                <span class="detail-label">Name:</span>
+                                                <span class="detail-value" id="guestName">-</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Email:</span>
+                                                <span class="detail-value" id="guestEmail">-</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Phone:</span>
+                                                <span class="detail-value" id="guestPhone">-</span>
+                                            </div>
+                                            <div class="detail-row" id="specialRequestRow" style="display: none;">
+                                                <span class="detail-label">Special Request:</span>
+                                                <span class="detail-value" id="specialRequest">-</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <h4 class="mb-3 mt-4"><i class="fas fa-rupee-sign text-primary me-2"></i>Price Breakdown</h4>
+                                        <div class="price-breakdown">
+                                            <div class="detail-row">
+                                                <span class="detail-label">Room Rate per Night:</span>
+                                                <span class="detail-value">$<span id="ratePerNight">0</span></span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Number of Nights:</span>
+                                                <span class="detail-value" id="nightsCount">0</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Subtotal:</span>
+                                                <span class="detail-value">$<span id="subtotal">0</span></span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Tax (12%):</span>
+                                                <span class="detail-value">$<span id="tax">0</span></span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Service Fee:</span>
+                                                <span class="detail-value">$<span id="serviceFee">0</span></span>
+                                            </div>
+                                            <div class="total-amount mt-3">
+                                                <small>Total Amount Paid</small>
+                                                <h3>$<span id="totalAmount">0</span></h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Timeline / Important Information -->
+                                <div class="row mt-5">
+                                    <div class="col-12">
+                                        <h4 class="mb-3"><i class="fas fa-info-circle text-primary me-2"></i>Important Information</h4>
+                                        <div class="timeline">
+                                            <div class="timeline-item">
+                                                <div class="timeline-icon active">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="timeline-content">
+                                                    <h6>Check-in Time: 2:00 PM</h6>
+                                                    <p class="text-muted mb-0">Early check-in subject to availability</p>
+                                                </div>
+                                            </div>
+                                            <div class="timeline-item">
+                                                <div class="timeline-icon">
+                                                    <i class="fas fa-clock"></i>
+                                                </div>
+                                                <div class="timeline-content">
+                                                    <h6>Check-out Time: 11:00 AM</h6>
+                                                    <p class="text-muted mb-0">Late check-out available at additional charge</p>
+                                                </div>
+                                            </div>
+                                            <div class="timeline-item">
+                                                <div class="timeline-icon">
+                                                    <i class="fas fa-credit-card"></i>
+                                                </div>
+                                                <div class="timeline-content">
+                                                    <h6>Cancellation Policy</h6>
+                                                    <p class="text-muted mb-0">Free cancellation up to 48 hours before check-in</p>
+                                                </div>
+                                            </div>
+                                            <div class="timeline-item">
+                                                <div class="timeline-icon">
+                                                    <i class="fas fa-id-card"></i>
+                                                </div>
+                                                <div class="timeline-content">
+                                                    <h6>Required Documents</h6>
+                                                    <p class="text-muted mb-0">Valid government ID and booking confirmation required at check-in</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="row mt-4">
+                                    <div class="col-12 text-center action-buttons">
+                                        <button class="btn btn-primary" onclick="window.print()">
+                                            <i class="fas fa-print me-2"></i>Print Confirmation
+                                        </button>
+                                        <button class="btn btn-outline-primary" id="downloadInvoiceBtn">
+                                            <i class="fas fa-download me-2"></i>Download Invoice
+                                        </button>
+                                        <a href="dashboard.html" class="btn btn-outline-secondary">
+                                            <i class="fas fa-tachometer-alt me-2"></i>View Dashboard
+                                        </a>
+                                        <a href="rooms.html" class="btn btn-outline-secondary">
+                                            <i class="fas fa-search me-2"></i>Browse More Rooms
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                <!-- Share Section -->
+                                <div class="row mt-4 no-print">
+                                    <div class="col-12 text-center share-section">
+                                        <p class="mb-2">Share your booking confirmation</p>
+                                        <div class="share-buttons">
+                                            <a href="#" class="facebook" id="shareFacebook"><i class="fab fa-facebook-f"></i></a>
+                                            <a href="#" class="twitter" id="shareTwitter"><i class="fab fa-twitter"></i></a>
+                                            <a href="#" class="whatsapp" id="shareWhatsapp"><i class="fab fa-whatsapp"></i></a>
+                                            <a href="#" class="email" id="shareEmail"><i class="fas fa-envelope"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Email Confirmation Notice -->
+                                <div class="row mt-4 no-print">
+                                    <div class="col-12">
+                                        <div class="alert alert-success text-center">
+                                            <i class="fas fa-envelope me-2"></i>
+                                            A confirmation email has been sent to <strong id="confirmEmail">-</strong>
+                                            <br>
+                                            <small>Please check your inbox (and spam folder) for your booking details.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="errorContent" style="display: none;">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8">
+                            <div class="confirmation-card p-5 text-center">
+                                <div class="mb-4">
+                                    <i class="fas fa-exclamation-triangle fa-4x text-danger"></i>
+                                </div>
+                                <h3 class="mb-3">Booking Not Found</h3>
+                                <p class="text-muted mb-4">We couldn't find the booking information you're looking for.</p>
+                                <a href="dashboard.html" class="btn btn-primary me-2">Go to Dashboard</a>
+                                <a href="booking.html" class="btn btn-outline-primary">Make a New Booking</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Confirmation Content End -->
+
+        <!-- Footer Start -->
+        <div class="container-fluid bg-dark text-light footer wow fadeIn no-print" data-wow-delay="0.1s">
+            <div class="container pb-5">
+                <div class="row g-5">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="bg-primary rounded p-4">
+                            <a href="index.html"><h1 class="text-white text-uppercase mb-3">Hotelier</h1></a>
+                            <p class="text-white mb-0">Experience luxury redefined. Book your stay with Hotelier for an unforgettable experience.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <h6 class="section-title text-start text-primary text-uppercase mb-4">Contact</h6>
+                        <p class="mb-2"><i class="fa fa-map-marker-alt me-3"></i>123 MG Road, Bangalore, India</p>
+                        <p class="mb-2"><i class="fa fa-phone-alt me-3"></i>+91 98765 43210</p>
+                        <p class="mb-2"><i class="fa fa-envelope me-3"></i>info@hotelier.com</p>
+                        <div class="d-flex pt-2">
+                            <a class="btn btn-outline-light btn-social" href="#"><i class="fab fa-twitter"></i></a>
+                            <a class="btn btn-outline-light btn-social" href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a class="btn btn-outline-light btn-social" href="#"><i class="fab fa-youtube"></i></a>
+                            <a class="btn btn-outline-light btn-social" href="#"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 col-md-12">
+                        <div class="row gy-5 g-4">
+                            <div class="col-md-6">
+                                <h6 class="section-title text-start text-primary text-uppercase mb-4">Company</h6>
+                                <a class="btn btn-link" href="about.html">About Us</a>
+                                <a class="btn btn-link" href="contact.html">Contact Us</a>
+                                <a class="btn btn-link" href="#">Privacy Policy</a>
+                                <a class="btn btn-link" href="#">Terms & Condition</a>
+                                <a class="btn btn-link" href="#">Support</a>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="section-title text-start text-primary text-uppercase mb-4">Services</h6>
+                                <a class="btn btn-link" href="service.html">Food & Restaurant</a>
+                                <a class="btn btn-link" href="service.html">Spa & Fitness</a>
+                                <a class="btn btn-link" href="service.html">Sports & Gaming</a>
+                                <a class="btn btn-link" href="service.html">Event & Party</a>
+                                <a class="btn btn-link" href="service.html">GYM & Yoga</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="copyright">
+                    <div class="row">
+                        <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                            &copy; <a class="border-bottom" href="#">Hotelier</a>, All Right Reserved.
+                        </div>
+                        <div class="col-md-6 text-center text-md-end">
+                            <div class="footer-menu">
+                                <a href="index.html">Home</a>
+                                <a href="#">Cookies</a>
+                                <a href="#">Help</a>
+                                <a href="#">FQAs</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer End -->
+
+        <!-- Back to Top -->
+        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top no-print"><i class="bi bi-arrow-up"></i></a>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/wow/wow.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/counterup/counterup.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="lib/tempusdominus/js/moment.min.js"></script>
+    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    
+    <script>
+        let currentBooking = null;
+        let currentRoom = null;
+        let countdownInterval = null;
+        
+        // Get booking ID from URL
+        function getBookingIdFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('booking');
+        }
+        
+        // Load booking details
+        async function loadBookingDetails() {
+            const bookingId = getBookingIdFromURL();
+            
+            if (!bookingId) {
+                // Try to get from session storage (for new bookings)
+                const savedBooking = sessionStorage.getItem('lastBooking');
+                if (savedBooking) {
+                    try {
+                        const booking = JSON.parse(savedBooking);
+                        displayBookingDetails(booking);
+                        return;
+                    } catch (e) {
+                        console.error('Error parsing saved booking:', e);
+                    }
+                }
+                
+                // Show error if no booking found
+                showError();
+                return;
+            }
+            
+            const loadingDiv = document.getElementById('loadingContent');
+            const contentDiv = document.getElementById('confirmationContent');
+            const errorDiv = document.getElementById('errorContent');
+            
+            try {
+                // Fetch booking details from API
+                const booking = await getUserBookingById(bookingId);
+                currentBooking = booking;
+                
+                // Fetch room details
+                if (booking.room_id) {
+                    currentRoom = await getRoomById(booking.room_id);
+                }
+                
+                loadingDiv.style.display = 'none';
+                contentDiv.style.display = 'block';
+                
+                displayBookingDetails(booking);
+                
+                // Start countdown timer (for payment window if applicable)
+                startCountdown();
+                
+            } catch (error) {
+                console.error('Error loading booking:', error);
+                loadingDiv.style.display = 'none';
+                errorDiv.style.display = 'block';
+            }
+        }
+        
+        function displayBookingDetails(booking) {
+            // Set booking reference
+            const bookingRef = booking.booking_reference || `HOT-${booking.id}-${Date.now().toString().slice(-6)}`;
+            document.getElementById('bookingRef').textContent = bookingRef;
+            
+            // Set booking details
+            document.getElementById('bookingDate').textContent = formatDate(booking.created_at || new Date());
+            document.getElementById('bookingStatus').innerHTML = `<span class="badge bg-${getStatusColor(booking.status)}">${booking.status || 'Confirmed'}</span>`;
+            document.getElementById('paymentStatus').innerHTML = `<span class="badge bg-${getPaymentStatusColor(booking.payment_status)}">${booking.payment_status || 'Paid'}</span>`;
+            
+            // Set room details
+            if (currentRoom) {
+                document.getElementById('roomName').textContent = currentRoom.name;
+                document.getElementById('roomType').textContent = currentRoom.type || 'Deluxe';
+            } else {
+                document.getElementById('roomName').textContent = booking.room_name || 'Luxury Room';
+                document.getElementById('roomType').textContent = booking.room_type || 'Deluxe';
+            }
+            
+            document.getElementById('checkIn').textContent = formatDate(booking.check_in);
+            document.getElementById('checkOut').textContent = formatDate(booking.check_out);
+            
+            const nights = calculateNights(booking.check_in, booking.check_out);
+            document.getElementById('nights').textContent = nights;
+            document.getElementById('nightsCount').textContent = nights;
+            
+            document.getElementById('guests').textContent = `${booking.guests || 2} Guest(s)`;
+            
+            // Set guest details
+            document.getElementById('guestName').textContent = booking.guest_name || booking.user_name || 'Guest';
+            document.getElementById('guestEmail').textContent = booking.guest_email || booking.user_email || 'guest@example.com';
+            document.getElementById('guestPhone').textContent = booking.guest_phone || booking.user_phone || 'Not provided';
+            document.getElementById('confirmEmail').textContent = booking.guest_email || booking.user_email || 'your email';
+            
+            if (booking.special_requests) {
+                document.getElementById('specialRequestRow').style.display = 'flex';
+                document.getElementById('specialRequest').textContent = booking.special_requests;
+            }
+            
+            // Set price details
+            const ratePerNight = currentRoom?.price_per_night || booking.rate_per_night || 100;
+            const subtotal = ratePerNight * nights;
+            const tax = subtotal * 0.12;
+            const serviceFee = 0;
+            const total = booking.total_price || subtotal + tax + serviceFee;
+            
+            document.getElementById('ratePerNight').textContent = ratePerNight;
+            document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('tax').textContent = tax.toFixed(2);
+            document.getElementById('serviceFee').textContent = serviceFee.toFixed(2);
+            document.getElementById('totalAmount').textContent = total.toFixed(2);
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return 'Not specified';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+        
+        function calculateNights(checkIn, checkOut) {
+            const checkInDate = new Date(checkIn);
+            const checkOutDate = new Date(checkOut);
+            return Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+        }
+        
+        function getStatusColor(status) {
+            switch(status?.toLowerCase()) {
+                case 'confirmed': return 'success';
+                case 'pending': return 'warning';
+                case 'cancelled': return 'danger';
+                case 'completed': return 'info';
+                default: return 'secondary';
+            }
+        }
+        
+        function getPaymentStatusColor(status) {
+            switch(status?.toLowerCase()) {
+                case 'paid': return 'success';
+                case 'pending': return 'warning';
+                case 'refunded': return 'info';
+                case 'failed': return 'danger';
+                default: return 'secondary';
+            }
+        }
+        
+        function startCountdown() {
+            // For bookings with pending payment, show countdown
+            if (currentBooking?.payment_status === 'pending') {
+                const timerDiv = document.getElementById('countdownTimer');
+                timerDiv.style.display = 'block';
+                
+                let timeLeft = 30 * 60; // 30 minutes in seconds
+                
+                countdownInterval = setInterval(() => {
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    timerDiv.innerHTML = `<i class="fas fa-hourglass-half me-1"></i>Complete payment within ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(countdownInterval);
+                        timerDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Payment window expired. Please make a new booking.';
+                        timerDiv.style.color = '#dc3545';
+                    }
+                    timeLeft--;
+                }, 1000);
+            } else {
+                document.getElementById('countdownTimer').style.display = 'none';
+            }
+        }
+        
+        // Download invoice as PDF
+        document.getElementById('downloadInvoiceBtn')?.addEventListener('click', function() {
+            const element = document.getElementById('confirmationContent');
+            const opt = {
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: `invoice_${document.getElementById('bookingRef').textContent}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, letterRendering: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            
+            toastr.info('Generating invoice...');
+            html2pdf().set(opt).from(element).save()
+                .then(() => {
+                    toastr.success('Invoice downloaded successfully!');
+                })
+                .catch(() => {
+                    toastr.error('Failed to generate invoice');
+                });
+        });
+        
+        // Share functions
+        const shareText = `I've successfully booked a room at Hotelier! Booking Reference: ${document.getElementById('bookingRef')?.textContent || 'HOT-XXXX'}. Check out Hotelier for amazing hotel experiences!`;
+        const shareUrl = window.location.href;
+        
+        document.getElementById('shareFacebook')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank', 'width=600,height=400');
+        });
+        
+        document.getElementById('shareTwitter')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank', 'width=600,height=400');
+        });
+        
+        document.getElementById('shareWhatsapp')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`, '_blank');
+        });
+        
+        document.getElementById('shareEmail')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = `mailto:?subject=My Hotelier Booking Confirmation&body=${encodeURIComponent(shareText + '\n\nView details: ' + shareUrl)}`;
+        });
+        
+        // Mock API function (replace with actual API call)
+        async function getUserBookingById(bookingId) {
+            // This should be replaced with actual API call
+            // For demo purposes, returning mock data or checking localStorage
+            
+            // Check if booking exists in localStorage (for demo)
+            const savedBookings = localStorage.getItem('bookings');
+            if (savedBookings) {
+                const bookings = JSON.parse(savedBookings);
+                const booking = bookings.find(b => b.id == bookingId);
+                if (booking) return booking;
+            }
+            
+            // Mock data for demo
+            return {
+                id: bookingId,
+                booking_reference: `HOT-${bookingId}-${Date.now().toString().slice(-6)}`,
+                created_at: new Date().toISOString(),
+                status: 'confirmed',
+                payment_status: 'paid',
+                room_name: 'Executive Suite',
+                room_type: 'Luxury',
+                check_in: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                check_out: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                guests: 2,
+                guest_name: getCurrentUser()?.name || 'John Doe',
+                guest_email: getCurrentUser()?.email || 'john@example.com',
+                guest_phone: '+91 98765 43210',
+                special_requests: 'Prefer room with ocean view',
+                rate_per_night: 150,
+                total_price: 504,
+                room_id: 1
+            };
+        }
+        
+        // Clear last booking from session storage after loading
+        function clearLastBooking() {
+            sessionStorage.removeItem('lastBooking');
+        }
+        
+        // Load page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBookingDetails();
+            clearLastBooking();
+        });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+        });
+    </script>
+</body>
+
+</html>

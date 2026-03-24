@@ -1,13 +1,55 @@
-  =>  Template Name    : Hotelier - Hotel HTML Template
+HOTEL BOOKING SYSTEM - QUICK START GUIDE
+==========================================
 
-  =>  Template Link    : https://htmlcodex.com/hotel-html-template
+REQUIREMENTS:
+- Node.js v14+ (download from https://nodejs.org/)
+- Modern web browser (Chrome, Firefox, Safari, Edge)
 
-  =>  Template License : https://htmlcodex.com/license (or read the LICENSE.txt file)
+SETUP (5 MINUTES):
+1. Open Command Prompt/Terminal
+2. Navigate to backend folder: cd backend
+3. Install dependencies: npm install
+4. Start server: npm start
+5. Open http://localhost:8000/frontend/index.html in browser
 
-  =>  Template Author  : HTML Codex
+STEP-BY-STEP SETUP:
 
-  =>  Author Website   : https://htmlcodex.com
+STEP 1: Backend Setup
+--------------------
+cd backend
+npm install
+npm start
 
-  =>  About HTML Codex : HTML Codex is one of the top creators and publishers of Free HTML templates, HTML landing pages, HTML email templates and HTML snippets in the world. Read more at ( https://htmlcodex.com/about-us )
+Wait for message: "Hotel Backend Server running on http://localhost:5000"
 
-  This is made by Aunish Tiwari
+STEP 2: Frontend Access
+-----------------------
+Option A - Direct (simplest):
+- Open File Explorer
+- Navigate to: e:\hotel-html-template\frontend\
+- Double-click: index.html
+
+Option B - Local Server:
+- Open another terminal
+- Run: npx http-server -p 8000
+- Open: http://localhost:8000/frontend/index.html
+
+VERIFY SETUP:
+- Check backend: http://localhost:5000/health (should show {status: "Server is running"})
+- Check API: http://localhost:5000/api/rooms (should show rooms data)
+- Check frontend: Should load 4 sample rooms
+
+TROUBLESHOOT:
+
+Problem: "Failed to load rooms" on room.html
+Solution: Make sure backend is running (see STEP 1)
+
+Problem: "Cannot find module" error in terminal
+Solution: Run: npm install
+
+Problem: Port 5000 already in use
+Windows: netstat -ano | findstr :5000
+Then: taskkill /PID <number> /F
+
+Problem: Images show broken
+This is normal for placeholder images - functionality still works
