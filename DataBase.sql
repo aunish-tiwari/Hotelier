@@ -1,0 +1,15 @@
+-- create database hotelier;
+-- create table users(
+--     id serial primary key,
+--     Full_Name varchar(255) not null,
+--     email varchar(255) not null unique,
+--     phone varchar(20)  null,
+--     Address varchar(255) null,
+--     password varchar(255) not null,
+--     role varchar(50) not null default 'user',
+--     created_at timestamp default now(),
+--     updated_at timestamp default now()
+-- );
+
+-- SELECT current_database();
+-- drop table users;

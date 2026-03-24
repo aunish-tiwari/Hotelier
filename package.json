@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "ejs": "^5.0.1",
+    "express": "^5.2.1",
+    "nodemon": "^3.1.14",
+    "pg": "^8.20.0"
+  },
+  "name": "hotelier",
+  "version": "1.0.0",
+  "main": "app.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aunish-tiwari/Hotelier.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aunish-tiwari/Hotelier/issues"
+  },
+  "homepage": "https://github.com/aunish-tiwari/Hotelier#readme",
+  "description": ""
+}
