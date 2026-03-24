@@ -13,3 +13,5 @@
 
 -- SELECT current_database();
 -- drop table users;
+
+select * from users;
