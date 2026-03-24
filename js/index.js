@@ -1,5 +1,5 @@
 // Homepage specific functionality
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     loadFeaturedRooms();
     loadStats();
     loadTestimonials();
@@ -14,7 +14,7 @@ async function loadFeaturedRooms() {
         const rooms = Array.isArray(response) ? response : (response.rooms || response.data || []);
         const container = document.getElementById('roomsContainer');
         if (!container) return;
-        
+
         container.innerHTML = rooms.map(room => `
             <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
                 <div class="room-item shadow rounded overflow-hidden">
@@ -43,7 +43,7 @@ async function loadFeaturedRooms() {
                 </div>
             </div>
         `).join('');
-        
+
     } catch (error) {
         console.error('Error loading rooms:', error);
     }
@@ -63,16 +63,16 @@ async function loadStats() {
         const rooms = Array.isArray(response) ? response : (response.rooms || response.data || []);
         const roomCount = document.getElementById('roomCount');
         if (roomCount) roomCount.textContent = rooms.length;
-        
+
         // Staff count and client count would come from separate APIs
         const staffCount = document.getElementById('staffCount');
         const clientCount = document.getElementById('clientCount');
         if (staffCount) staffCount.textContent = '50';
         if (clientCount) clientCount.textContent = '5000+';
-        
+
         // Animate counters
         $('[data-toggle="counter-up"]').counterUp({ delay: 10, time: 1000 });
-        
+
     } catch (error) {
         console.error('Error loading stats:', error);
     }
@@ -85,10 +85,10 @@ async function loadTestimonials() {
         { name: 'Jane Smith', profession: 'Tourist', text: 'Beautiful rooms and great location. Will visit again!', image: 'testimonial-2.jpg' },
         { name: 'Mike Johnson', profession: 'Food Critic', text: 'The restaurant here is phenomenal. Best breakfast ever!', image: 'testimonial-3.jpg' }
     ];
-    
+
     const container = document.getElementById('testimonialContainer');
     if (!container) return;
-    
+
     container.innerHTML = testimonials.map(t => `
         <div class="testimonial-item position-relative bg-white rounded overflow-hidden">
             <p>${t.text}</p>
@@ -102,7 +102,7 @@ async function loadTestimonials() {
             <i class="fa fa-quote-right fa-3x text-primary position-absolute end-0 bottom-0 me-4 mb-n1"></i>
         </div>
     `).join('');
-    
+
     // Initialize testimonial carousel
     $('.testimonial-carousel').owlCarousel({
         items: 1,
@@ -118,12 +118,12 @@ async function loadTestimonials() {
 function setupQuickSearch() {
     const searchBtn = document.getElementById('quickSearchBtn');
     if (searchBtn) {
-        searchBtn.addEventListener('click', function() {
+        searchBtn.addEventListener('click', function () {
             const checkIn = document.getElementById('checkIn')?.value;
             const checkOut = document.getElementById('checkOut')?.value;
             const adults = document.getElementById('adults')?.value;
             const children = document.getElementById('children')?.value;
-            
+
             window.location.href = `rooms.html?checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}`;
         });
     }
@@ -132,7 +132,7 @@ function setupQuickSearch() {
 function setupNewsletter() {
     const subscribeBtn = document.getElementById('subscribeBtn');
     if (subscribeBtn) {
-        subscribeBtn.addEventListener('click', async function() {
+        subscribeBtn.addEventListener('click', async function () {
             const email = document.getElementById('newsletterEmail')?.value;
             if (!email) {
                 toastr.warning('Please enter your email');

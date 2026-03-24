@@ -32,7 +32,7 @@ app.post('/api/auth/register', async (req, res) => {
 
         // Create user
         const user = await User.create(name, email, password, phone);
-        
+
         res.status(201).json({
             message: 'User registered successfully',
             user: {
@@ -187,7 +187,7 @@ app.post('/api/bookings', authenticateToken, async (req, res) => {
         db.run(
             'INSERT INTO bookings (user_id, room_id, check_in, check_out, total_price, status) VALUES (?, ?, ?, ?, ?, ?)',
             [userId, roomId, checkIn, checkOut, totalPrice, 'confirmed'],
-            function(err) {
+            function (err) {
                 if (err) {
                     return res.status(500).json({ message: err.message });
                 }
@@ -246,7 +246,7 @@ app.put('/api/bookings/:id/cancel', authenticateToken, (req, res) => {
         db.run(
             'UPDATE bookings SET status = ? WHERE id = ? AND user_id = ?',
             ['cancelled', id, userId],
-            function(err) {
+            function (err) {
                 if (err) {
                     return res.status(500).json({ message: err.message });
                 }

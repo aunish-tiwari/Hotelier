@@ -11,7 +11,7 @@ function renderStars(rating) {
     return stars;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('Rooms page loaded - API_BASE_URL:', API_BASE_URL);
     loadRooms();
     setupFilters();
@@ -23,26 +23,26 @@ async function loadRooms(append = false) {
     const container = document.getElementById('roomsContainer');
     const spinner = document.getElementById('loadingSpinner');
     const loadMoreBtn = document.getElementById('loadMoreBtn');
-    
+
     if (!append && spinner) spinner.style.display = 'block';
-    
+
     try {
         const params = { ...currentFilters, page: currentPage, limit: 6 };
         console.log('Loading rooms with params:', params);
         const response = await getRooms(params);
-        
+
         console.log('API Response:', response);
         // Extract rooms array from response - handle both formats
         const rooms = Array.isArray(response) ? response : (response.rooms || response.data || []);
-        
+
         if (!append && container) container.innerHTML = '';
-        
+
         if (rooms.length === 0 && !append) {
             if (container) container.innerHTML = '<div class="col-12 text-center"><p class="text-muted">No rooms found matching your criteria.</p></div>';
             if (loadMoreBtn) loadMoreBtn.style.display = 'none';
             return;
         }
-        
+
         rooms.forEach((room, index) => {
             console.log('Rendering room:', room.name, 'ID:', room.id);
             const imageUrl = room.images || room.image_url || '../img/room-1.jpg';
@@ -77,22 +77,22 @@ async function loadRooms(append = false) {
             `;
             if (container) container.insertAdjacentHTML('beforeend', roomHtml);
         });
-        
+
         // Re-initialize WOW for newly added elements
         if (typeof WOW !== 'undefined' && WOW !== null) {
             try {
                 new WOW().init();
-            } catch(e) {
+            } catch (e) {
                 console.log('WOW not available:', e);
             }
         }
-        
+
         if (rooms.length === 6) {
             if (loadMoreBtn) loadMoreBtn.style.display = 'block';
         } else {
             if (loadMoreBtn) loadMoreBtn.style.display = 'none';
         }
-        
+
     } catch (error) {
         console.error('Error loading rooms:', error);
         console.error('Error details:', error.message);
@@ -120,11 +120,11 @@ async function loadRooms(append = false) {
 function setupFilters() {
     const applyBtn = document.getElementById('applyFiltersBtn');
     if (applyBtn) {
-        applyBtn.addEventListener('click', function() {
+        applyBtn.addEventListener('click', function () {
             const roomType = document.getElementById('filterRoomType')?.value;
             const price = document.getElementById('filterPrice')?.value;
             const capacity = document.getElementById('filterCapacity')?.value;
-            
+
             currentFilters = {};
             if (roomType) currentFilters.type = roomType;
             if (price) {
@@ -133,7 +133,7 @@ function setupFilters() {
                 currentFilters.maxPrice = max;
             }
             if (capacity) currentFilters.capacity = capacity;
-            
+
             currentPage = 1;
             loadRooms(false);
         });
@@ -146,14 +146,14 @@ function setupURLParams() {
     const checkOut = urlParams.get('checkOut');
     const adults = urlParams.get('adults');
     const children = urlParams.get('children');
-    
+
     if (checkIn && checkOut) {
         currentFilters.checkIn = checkIn;
         currentFilters.checkOut = checkOut;
     }
     if (adults) currentFilters.adults = adults;
     if (children) currentFilters.children = children;
-    
+
     loadRooms();
 }
 
@@ -164,7 +164,7 @@ function showRoomDetail(roomId) {
 function setupLoadMore() {
     const loadMoreBtn = document.getElementById('loadMoreBtn');
     if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', function() {
+        loadMoreBtn.addEventListener('click', function () {
             currentPage++;
             console.log('Loading page:', currentPage);
             loadRooms(true);

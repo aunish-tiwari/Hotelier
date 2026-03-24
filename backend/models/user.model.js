@@ -8,8 +8,8 @@ class User {
             try {
                 const hashedPassword = await hashPassword(password);
                 const query = 'INSERT INTO users (name, email, password, phone) VALUES (?, ?, ?, ?)';
-                
-                db.run(query, [name, email, hashedPassword, phone], function(err) {
+
+                db.run(query, [name, email, hashedPassword, phone], function (err) {
                     if (err) {
                         if (err.message.includes('UNIQUE')) {
                             reject(new Error('Email already registered'));
@@ -86,7 +86,7 @@ class User {
     static async update(id, name, phone) {
         return new Promise((resolve, reject) => {
             const query = 'UPDATE users SET name = ?, phone = ? WHERE id = ?';
-            db.run(query, [name, phone, id], function(err) {
+            db.run(query, [name, phone, id], function (err) {
                 if (err) reject(err);
                 else resolve({ id, name, phone });
             });
@@ -97,7 +97,7 @@ class User {
     static async delete(id) {
         return new Promise((resolve, reject) => {
             const query = 'DELETE FROM users WHERE id = ?';
-            db.run(query, [id], function(err) {
+            db.run(query, [id], function (err) {
                 if (err) reject(err);
                 else resolve({ success: true });
             });

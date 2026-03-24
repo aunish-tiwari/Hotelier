@@ -76,7 +76,7 @@ function initializeDatabase() {
                     ['Family Room', 'Large room perfect for families', 200, 4, 'WiFi, AC, TV, Kitchen', 'https://via.placeholder.com/300x200?text=Family+Room'],
                     ['Luxury Penthouse', 'Premium room with all luxury amenities', 300, 2, 'WiFi, AC, TV, Spa, Balcony', 'https://via.placeholder.com/300x200?text=Luxury+Penthouse']
                 ];
-                
+
                 sampleRooms.forEach(room => {
                     db.run('INSERT INTO rooms (name, description, price, capacity, amenities, image_url) VALUES (?, ?, ?, ?, ?, ?)', room);
                 });
