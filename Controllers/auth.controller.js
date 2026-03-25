@@ -49,13 +49,17 @@ exports.postLogin = (req,res)=>{
             return res.status(500).json({message: 'Internal server error'});
         }
         if (result.rows.length > 0) {
+            const loggedInUser = result.rows[0];
+            const token = Buffer.from(`${loggedInUser.id}:${Date.now()}`).toString('base64');
+
             return res.status(200).json({
                 message: 'Login successful',
+                token,
                 user: {
-                    id: result.rows[0].id,
-                    name: result.rows[0].name,
-                    email: result.rows[0].email,
-                    phone: result.rows[0].phone
+                    id: loggedInUser.id,
+                    name: loggedInUser.full_name,
+                    email: loggedInUser.email,
+                    phone: loggedInUser.phone
                 }
             });
         } else {

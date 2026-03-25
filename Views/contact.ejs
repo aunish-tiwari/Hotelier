@@ -208,36 +208,42 @@
                     </div>
                     <div class="col-md-6">
                         <div class="wow fadeInUp" data-wow-delay="0.2s">
-                            <form>
+                            <div id="contactAlert" class="alert <%= formMessage ? (formStatus === 'success' ? 'alert-success' : 'alert-danger') : 'd-none' %>" role="alert">
+                                <%= formMessage || '' %>
+                            </div>
+                            <form id="contactForm" action="/contact" method="POST" novalidate>
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="text" class="form-control" id="name" placeholder="Your Name">
+                                            <input type="text" class="form-control" id="name" name="name" placeholder="Your Name"
+                                                value="<%= formData && formData.name ? formData.name : '' %>" required>
                                             <label for="name">Your Name</label>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-floating">
                                             <input type="email" class="form-control" id="email"
-                                                placeholder="Your Email">
+                                                name="email" placeholder="Your Email"
+                                                value="<%= formData && formData.email ? formData.email : '' %>" required>
                                             <label for="email">Your Email</label>
                                         </div>
                                     </div>
                                     <div class="col-12">
                                         <div class="form-floating">
-                                            <input type="text" class="form-control" id="subject" placeholder="Subject">
+                                            <input type="text" class="form-control" id="subject" name="subject" placeholder="Subject"
+                                                value="<%= formData && formData.subject ? formData.subject : '' %>" required>
                                             <label for="subject">Subject</label>
                                         </div>
                                     </div>
                                     <div class="col-12">
                                         <div class="form-floating">
                                             <textarea class="form-control" placeholder="Leave a message here"
-                                                id="message" style="height: 150px"></textarea>
+                                                id="message" name="message" style="height: 150px" required><%= formData && formData.message ? formData.message : '' %></textarea>
                                             <label for="message">Message</label>
                                         </div>
                                     </div>
                                     <div class="col-12">
-                                        <button class="btn btn-primary w-100 py-3" type="submit">Send Message</button>
+                                        <button id="contactSubmitBtn" class="btn btn-primary w-100 py-3" type="submit">Send Message</button>
                                     </div>
                                 </div>
                             </form>
@@ -350,20 +356,65 @@
         <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
     </div>
 
-    <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../lib/wow/wow.min.js"></script>
-    <script src="../lib/easing/easing.min.js"></script>
-    <script src="../lib/waypoints/waypoints.min.js"></script>
-    <script src="../lib/counterup/counterup.min.js"></script>
-    <script src="../lib/owlcarousel/owl.carousel.min.js"></script>
-    <script src="../lib/tempusdominus/js/moment.min.js"></script>
-    <script src="../lib/tempusdominus/js/moment-timezone.min.js"></script>
-    <script src="../lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    <script>
+        (function () {
+            const contactForm = document.getElementById('contactForm');
+            const alertBox = document.getElementById('contactAlert');
+            const submitBtn = document.getElementById('contactSubmitBtn');
 
-    <!-- Template Javascript -->
-    <script src="../js/main.js"></script>
+            if (!contactForm || !alertBox || !submitBtn) {
+                return;
+            }
+
+            const setAlert = function (type, message) {
+                alertBox.classList.remove('d-none', 'alert-success', 'alert-danger');
+                alertBox.classList.add(type === 'success' ? 'alert-success' : 'alert-danger');
+                alertBox.textContent = message;
+            };
+
+            contactForm.addEventListener('submit', async function (event) {
+                event.preventDefault();
+
+                if (!contactForm.checkValidity()) {
+                    contactForm.reportValidity();
+                    return;
+                }
+
+                const payload = Object.fromEntries(new FormData(contactForm).entries());
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Sending...';
+
+                try {
+                    const response = await fetch('/contact', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json().catch(function () {
+                        return { message: 'Unable to process server response.' };
+                    });
+
+                    if (!response.ok) {
+                        setAlert('error', data.message || 'Failed to send message.');
+                        return;
+                    }
+
+                    setAlert('success', data.message || 'Your message has been sent successfully.');
+                    contactForm.reset();
+                } catch (error) {
+                    setAlert('error', 'Network error. Please try again.');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Send Message';
+                }
+            });
+        })();
+    </script>
+
 </body>
 
 </html>
