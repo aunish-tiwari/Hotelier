@@ -69,7 +69,7 @@ async function loadRooms(append = false) {
                             <p class="text-body mb-3">${room.description || 'Experience luxury and comfort in our premium rooms.'}</p>
                             <div class="d-flex justify-content-between">
                                 <button class="btn btn-sm btn-primary rounded py-2 px-4" onclick="showRoomDetail(${room.id})">View Detail</button>
-                                <a class="btn btn-sm btn-dark rounded py-2 px-4" href="booking.html?room=${room.id}">Book Now</a>
+                                <a class="btn btn-sm btn-dark rounded py-2 px-4" href="/booking?room=${room.id}">Book Now</a>
                             </div>
                         </div>
                     </div>
@@ -158,7 +158,7 @@ function setupURLParams() {
 }
 
 function showRoomDetail(roomId) {
-    window.location.href = `room-detail.html?id=${roomId}`;
+    window.location.href = `/room-detail?id=${roomId}`;
 }
 
 function setupLoadMore() {

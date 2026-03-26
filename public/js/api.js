@@ -65,7 +65,9 @@ async function createBooking(bookingData) {
 }
 
 async function getUserBookings() {
-    return apiRequest('/bookings/my-bookings');
+    const user = getCurrentUser();
+    const email = user && user.email ? encodeURIComponent(user.email) : '';
+    return apiRequest(`/bookings/my-bookings${email ? `?email=${email}` : ''}`);
 }
 
 async function cancelBooking(bookingId) {

@@ -1,13 +1,15 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = '/api';
 
-// Toastr configuration
-toastr.options = {
-    closeButton: true,
-    progressBar: true,
-    positionClass: 'toast-top-right',
-    timeOut: 3000
-};
+// Toastr configuration (guarded so auth logic still works even if toastr is not loaded)
+if (typeof toastr !== 'undefined') {
+    toastr.options = {
+        closeButton: true,
+        progressBar: true,
+        positionClass: 'toast-top-right',
+        timeOut: 3000
+    };
+}
 
 // Check if user is logged in
 function isLoggedIn() {

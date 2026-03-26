@@ -116,7 +116,7 @@ function setupBookingForm() {
         if (!isLoggedIn()) {
             toastr.warning('Please login to book a room');
             setTimeout(() => {
-                window.location.href = `login.html?redirect=booking.html?room=${document.getElementById('roomId').value}`;
+                window.location.href = `/login?redirect=/booking?room=${document.getElementById('roomId').value}`;
             }, 1500);
             return;
         }
@@ -162,7 +162,7 @@ function setupBookingForm() {
             const result = await createBooking(bookingData);
             toastr.success('Booking created successfully!');
             setTimeout(() => {
-                window.location.href = `booking-confirmation.html?booking=${result.booking.id}`;
+                window.location.href = `/booking-confirmation?booking=${result.booking.id}`;
             }, 1500);
         } catch (error) {
             console.error('Booking error:', error);

@@ -36,8 +36,8 @@ async function loadFeaturedRooms() {
                         </div>
                         <p class="text-body mb-3">${room.description || 'Experience luxury and comfort in our premium rooms.'}</p>
                         <div class="d-flex justify-content-between">
-                            <a class="btn btn-sm btn-primary rounded py-2 px-4" href="room-detail.html?id=${room.id}">View Detail</a>
-                            <a class="btn btn-sm btn-dark rounded py-2 px-4" href="booking.html?room=${room.id}">Book Now</a>
+                            <a class="btn btn-sm btn-primary rounded py-2 px-4" href="/room-detail?id=${room.id}">View Detail</a>
+                            <a class="btn btn-sm btn-dark rounded py-2 px-4" href="/booking?room=${room.id}">Book Now</a>
                         </div>
                     </div>
                 </div>
@@ -124,7 +124,7 @@ function setupQuickSearch() {
             const adults = document.getElementById('adults')?.value;
             const children = document.getElementById('children')?.value;
 
-            window.location.href = `rooms.html?checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}`;
+            window.location.href = `/room?checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}`;
         });
     }
 }

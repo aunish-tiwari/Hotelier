@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Manage Reviews - Hotelier Admin</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- DataTables -->
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
+    <!-- Toastr -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+
+    <style>
+        /* Sidebar styles (same as previous) */
+        :root {
+            --primary: #f3b33d;
+            --secondary: #2c3e50;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: #f4f6f9;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100%;
+            background: #2c3e50;
+            color: white;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            color: var(--primary);
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            margin: 5px 0 0;
+            opacity: 0.7;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu .menu-item {
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .sidebar-menu .menu-item:hover,
+        .sidebar-menu .menu-item.active {
+            background: rgba(243, 179, 61, 0.2);
+            color: var(--primary);
+        }
+
+        .sidebar-menu .menu-item i {
+            width: 30px;
+            font-size: 18px;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+
+        .navbar-top {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-primary-custom {
+            background: var(--primary);
+            border: none;
+            color: #2c3e50;
+        }
+
+        .btn-primary-custom:hover {
+            background: #e6a81e;
+            color: #2c3e50;
+        }
+
+        .review-card {
+            border-left: 4px solid var(--primary);
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .review-card:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .review-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .rating-stars {
+            color: #ffc107;
+            font-size: 14px;
+        }
+
+        .review-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-flagged {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .filter-bar {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -260px;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .rating-average {
+            background: linear-gradient(135deg, #f3b33d, #e67e22);
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+        }
+
+        .rating-stats-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .rating-stats-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header"></div>
+
+    <button class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-hotel me-2"></i>Hotelier</h3>
+            <p>Admin Dashboard</p>
+        </div>
+        <div class="sidebar-menu">
+            <a href="/admin/index" class="menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/admin/rooms" class="menu-item">
+                <i class="fas fa-bed"></i>
+                <span>Manage Rooms</span>
+            </a>
+            <a href="/admin/bookings" class="menu-item">
+                <i class="fas fa-calendar-check"></i>
+                <span>Manage Bookings</span>
+            </a>
+            <a href="/admin/users" class="menu-item">
+                <i class="fas fa-users"></i>
+                <span>Manage Users</span>
+            </a>
+            <a href="/admin/reviews" class="menu-item active">
+                <i class="fas fa-star"></i>
+                <span>Manage Reviews</span>
+            </a>
+            <a href="/admin/reports" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Reports</span>
+            </a>
+            <a href="/admin/settings" class="menu-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <hr class="mx-3 my-3" style="border-color: rgba(255,255,255,0.1);">
+            <a href="#" class="menu-item" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+            <a href="/" class="menu-item">
+                <i class="fas fa-globe"></i>
+                <span>View Website</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <% 
+            const safeReviews = Array.isArray(reviews) ? reviews : [];
+            const totalReviewsCount = safeReviews.length;
+            const avgRatingValue = totalReviewsCount
+                ? (safeReviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / totalReviewsCount)
+                : 0;
+            const ratingBuckets = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+            safeReviews.forEach((review) => {
+                const key = Math.max(1, Math.min(5, Number(review.rating || 0)));
+                ratingBuckets[key] += 1;
+            });
+        %>
+        <div class="navbar-top d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-star me-2 text-primary"></i>Manage Reviews</h5>
+            <div class="d-flex align-items-center">
+                <button class="btn btn-primary-custom btn-sm me-3" id="exportReviewsBtn">
+                    <i class="fas fa-download me-1"></i>Export Reviews
+                </button>
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
+                        data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle fa-2x text-primary me-2"></i>
+                        <span id="adminName">Admin User</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="#" id="logoutDropdown"><i
+                                    class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rating Overview -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="rating-average text-center">
+                    <h2 class="mb-0" id="avgRating"><%= avgRatingValue.toFixed(1) %></h2>
+                    <div id="avgRatingStars" class="mb-2">
+                        <% for (let i = 1; i <= 5; i++) { %>
+                            <i class="fa fa-star <%= i <= Math.round(avgRatingValue) ? '' : 'text-white-50' %>"></i>
+                        <% } %>
+                    </div>
+                    <p class="mb-0">Based on <span id="totalReviews"><%= totalReviewsCount %></span> reviews</p>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="content-card">
+                    <h6 class="mb-3">Rating Distribution</h6>
+                    <div id="ratingDistribution">
+                        <% [5,4,3,2,1].forEach(function(star) { 
+                            const count = ratingBuckets[star] || 0;
+                            const percent = totalReviewsCount ? (count * 100 / totalReviewsCount) : 0;
+                        %>
+                            <div class="d-flex align-items-center mb-2">
+                                <div style="width: 70px;"><%= star %> Star</div>
+                                <div class="rating-stats-bar flex-grow-1 me-2">
+                                    <div class="rating-stats-fill" data-width="<%= percent.toFixed(0) %>"></div>
+                                </div>
+                                <div style="width: 40px;" class="text-end"><%= count %></div>
+                            </div>
+                        <% }); %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="row align-items-end">
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Rating</label>
+                    <select class="form-select form-select-sm" id="filterRating">
+                        <option value="">All Ratings</option>
+                        <option value="5">5 Stars</option>
+                        <option value="4">4 Stars</option>
+                        <option value="3">3 Stars</option>
+                        <option value="2">2 Stars</option>
+                        <option value="1">1 Star</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Status</label>
+                    <select class="form-select form-select-sm" id="filterReviewStatus">
+                        <option value="">All Status</option>
+                        <option value="approved">Approved</option>
+                        <option value="pending">Pending</option>
+                        <option value="flagged">Flagged</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Room</label>
+                    <select class="form-select form-select-sm" id="filterReviewRoom">
+                        <option value="">All Rooms</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-primary-custom btn-sm w-100" id="applyReviewFilters">
+                        <i class="fas fa-filter me-1"></i>Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews List -->
+        <div class="content-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">All Reviews</h5>
+                <div class="input-group w-25">
+                    <input type="text" class="form-control form-control-sm" id="searchReview"
+                        placeholder="Search reviews...">
+                    <button class="btn btn-sm btn-outline-secondary" id="searchReviewBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="reviewsContainer">
+                <% if (safeReviews.length > 0) { %>
+                    <% safeReviews.forEach(function(review) { %>
+                        <div class="review-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1"><%= review.guest_name || 'Guest' %></h6>
+                                    <div class="rating-stars mb-2">
+                                        <% for (let i = 1; i <= 5; i++) { %>
+                                            <i class="fa fa-star <%= i <= Number(review.rating || 0) ? '' : 'text-muted' %>"></i>
+                                        <% } %>
+                                    </div>
+                                    <p class="mb-1"><strong>Room:</strong> <%= review.room_name %></p>
+                                    <p class="mb-0 text-muted"><%= review.comment || 'No comment' %></p>
+                                </div>
+                                <div class="text-end">
+                                    <span class="review-status status-approved">approved</span>
+                                    <p class="small text-muted mt-2 mb-0"><%= new Date(review.created_at).toISOString().split('T')[0] %></p>
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
+                <% } else { %>
+                    <p class="text-muted mb-0">No reviews found.</p>
+                <% } %>
+            </div>
+            <div class="text-center mt-4" id="loadMoreReviews" style="display: none;">
+                <button class="btn btn-outline-primary" id="loadMoreBtn">Load More Reviews</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View/Reply Review Modal -->
+    <div class="modal fade" id="reviewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-comment me-2 text-primary"></i>Review Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="currentReviewId">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <div class="review-avatar mx-auto mb-3" id="modalReviewAvatar"
+                                style="width: 80px; height: 80px; font-size: 32px;">JD</div>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 id="modalReviewerName" class="mb-1">John Doe</h6>
+                                    <div id="modalRatingStars" class="mb-2"></div>
+                                </div>
+                                <span id="modalReviewStatus" class="review-status"></span>
+                            </div>
+                            <p class="text-muted small" id="modalReviewDate">March 15, 2024</p>
+                            <p><strong>Room:</strong> <span id="modalRoomName">Executive Suite</span></p>
+                            <p id="modalReviewComment" class="mt-3">Amazing experience! The staff was very friendly and
+                                the room was spotless. Will definitely come back!</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <h6 class="mb-3"><i class="fas fa-reply me-2 text-primary"></i>Admin Response</h6>
+                    <textarea class="form-control" id="adminResponse" rows="3"
+                        placeholder="Write your response to this review..."></textarea>
+                    <div id="existingResponse" class="mt-2" style="display: none;">
+                        <label class="form-label text-muted small">Previous Response:</label>
+                        <p id="existingResponseText" class="bg-light p-2 rounded"></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="me-auto">
+                        <button class="btn btn-sm btn-danger" id="flagReviewBtn" onclick="flagReview()">
+                            <i class="fas fa-flag me-1"></i>Flag as Inappropriate
+                        </button>
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary-custom" onclick="saveAdminResponse()">
+                        <i class="fas fa-paper-plane me-1"></i>Post Response
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="/js/admin-auth.js"></script>
+
+    <script>
+        document.querySelectorAll('.rating-stats-fill').forEach(function (el) {
+            const width = Number(el.getAttribute('data-width') || '0');
+            el.style.width = `${width}%`;
+        });
+    </script>
+
+    <div id="footer"></div>
+</body>
+
+</html>
