@@ -7,8 +7,8 @@ const {
     getAdminBookings,
     getAdminUsers,
     getAdminReviews,
-    getAdminSettings,
-    getAdminReports
+    getAdminContacts,
+    postAdminContactReply
 } = require('../Controllers/admin.controller');
 
 // Admin routes - clean URLs only
@@ -25,8 +25,7 @@ router.get('/users', getAdminUsers);
 
 router.get('/reviews', getAdminReviews);
 
-router.get('/settings', getAdminSettings);
-
-router.get('/reports', getAdminReports);
+router.get('/contacts', getAdminContacts);
+router.post('/contacts/:id/reply', postAdminContactReply);
 
 module.exports = router;

@@ -6,6 +6,9 @@ const {
     getService,
     getRoom,
     getRoomDetail,
+    getMyBookings,
+    getMyBookingDetails,
+    getProfile,
     getTeam,
     getTestimonial,
     getContact,
@@ -13,7 +16,6 @@ const {
 } = require('../Controllers/user.controller');
 const {
     getBooking,
-    postBooking,
     getBookingConfirmation
 } = require('../Controllers/booking.controller');
 
@@ -30,6 +32,11 @@ router.get('/rooms', getRoom);
 
 router.get('/room-detail', getRoomDetail);
 
+router.get('/my-bookings', getMyBookings);
+router.get('/my-bookings/:id', getMyBookingDetails);
+
+router.get('/profile', getProfile);
+
 router.get('/team', getTeam);
 
 router.get('/testimonial', getTestimonial);
@@ -41,6 +48,5 @@ router.get('/booking', getBooking);
 router.get('/booking-confirmation', getBookingConfirmation);
 
 router.post('/contact', postContact);
-router.post('/booking', postBooking);
 
 module.exports = router;

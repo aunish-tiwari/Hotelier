@@ -85,16 +85,7 @@
                                 <a href="/about" class="nav-item nav-link">About</a>
                                 <a href="/service" class="nav-item nav-link">Services</a>
                                 <a href="/room" class="nav-item nav-link">Rooms</a>
-                                <div class="nav-item dropdown">
-                                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
-                                    <div class="dropdown-menu rounded-0 m-0">
-                                        <a href="/booking" class="dropdown-item">Booking</a>
-                                        <a href="/room-detail" class="dropdown-item" id="dashboardLink"
-                                            style="display:none;">My Bookings</a>
-                                        <a href="/team" class="dropdown-item">Our Team</a>
-                                        <a href="/testimonial" class="dropdown-item">Testimonial</a>
-                                    </div>
-                                </div>
+                                <a href="/my-bookings" class="nav-item nav-link" id="dashboardLink" style="display:none;">My Bookings</a>
                                 <a href="/contact" class="nav-item nav-link">Contact</a>
                             </div>
                             <div id="authButtons">
@@ -126,8 +117,8 @@
                                     Hotel</h1>
                                 <a href="/room"
                                     class="btn btn-primary py-md-3 px-md-5 me-3 animated slideInLeft">Our Rooms</a>
-                                <a href="/booking" class="btn btn-light py-md-3 px-md-5 animated slideInRight">Book
-                                    A Room</a>
+                                <a href="/room" class="btn btn-light py-md-3 px-md-5 animated slideInRight">Browse
+                                    Rooms</a>
                             </div>
                         </div>
                     </div>
@@ -141,8 +132,8 @@
                                     Before</h1>
                                 <a href="/room"
                                     class="btn btn-primary py-md-3 px-md-5 me-3 animated slideInLeft">Our Rooms</a>
-                                <a href="/booking" class="btn btn-light py-md-3 px-md-5 animated slideInRight">Book
-                                    A Room</a>
+                                <a href="/room" class="btn btn-light py-md-3 px-md-5 animated slideInRight">Browse
+                                    Rooms</a>
                             </div>
                         </div>
                     </div>
@@ -160,52 +151,6 @@
             </div>
         </div>
         <!-- Carousel End -->
-
-        <!-- Booking Start -->
-        <div class="container-fluid booking pb-5 wow fadeIn" data-wow-delay="0.1s">
-            <div class="container">
-                <div class="bg-white shadow" style="padding: 35px;">
-                    <div class="row g-2">
-                        <div class="col-md-10">
-                            <div class="row g-2">
-                                <div class="col-md-3">
-                                    <div class="date" id="date1" data-target-input="nearest">
-                                        <input type="text" class="form-control datetimepicker-input" id="checkIn"
-                                            placeholder="Check in" data-target="#date1" data-toggle="datetimepicker" />
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="date" id="date2" data-target-input="nearest">
-                                        <input type="text" class="form-control datetimepicker-input" id="checkOut"
-                                            placeholder="Check out" data-target="#date2" data-toggle="datetimepicker" />
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <select class="form-select" id="adults">
-                                        <option value="1">1 Adult</option>
-                                        <option value="2" selected>2 Adults</option>
-                                        <option value="3">3 Adults</option>
-                                        <option value="4">4 Adults</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <select class="form-select" id="children">
-                                        <option value="0">0 Children</option>
-                                        <option value="1">1 Child</option>
-                                        <option value="2">2 Children</option>
-                                        <option value="3">3 Children</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <button class="btn btn-primary w-100" id="quickSearchBtn">Search</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Booking End -->
 
         <!-- About Start -->
         <div class="container-xxl py-5">
@@ -298,7 +243,7 @@
                         <p class="text-white mb-4">Experience the epitome of luxury with our world-class amenities,
                             exquisite dining, and unparalleled service. Your perfect getaway awaits at Hotelier.</p>
                         <a href="/room" class="btn btn-primary py-md-3 px-md-5 me-3">Our Rooms</a>
-                        <a href="/booking" class="btn btn-light py-md-3 px-md-5">Book A Room</a>
+                        <a href="/room" class="btn btn-light py-md-3 px-md-5">Browse Rooms</a>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -539,7 +484,9 @@
 
     <!-- App Auth Scripts -->
     <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
     <script src="../js/auth.js"></script>
+    <script src="../js/index.js"></script>
 
     <!-- Main Script -->
     <script>
@@ -551,27 +498,6 @@
             delay: 10,
             time: 2000
         });
-
-        // Initialize testimonial carousel
-        $('.testimonial-carousel').owlCarousel({
-            items: 1,
-            loop: true,
-            autoplay: true,
-            smartSpeed: 500,
-            margin: 30,
-            nav: false,
-            dots: true,
-            autoplayTimeout: 5000
-        });
-
-        // Initialize date pickers
-        if (typeof $.fn.datetimepicker !== 'undefined') {
-            $('#date1, #date2').datetimepicker({
-                format: 'YYYY-MM-DD',
-                minDate: moment(),
-                useCurrent: false
-            });
-        }
 
         // Video modal functionality
         const videoModal = document.getElementById('videoModal');

@@ -58,6 +58,7 @@ function updateAuthUI() {
     const authButtons = document.getElementById('authButtons');
     const userInfo = document.getElementById('userInfo');
     const dashboardLink = document.getElementById('dashboardLink');
+    const profileLinks = document.querySelectorAll('.profileLink');
     const userNameSpan = document.getElementById('userName');
     const loggedIn = safeIsLoggedIn();
     
@@ -73,6 +74,9 @@ function updateAuthUI() {
         }
         if (userNameSpan && user) userNameSpan.textContent = user.name;
         if (dashboardLink) dashboardLink.style.display = 'block';
+        profileLinks.forEach(link => {
+            link.style.display = 'block';
+        });
     } else {
         if (authButtons) {
             authButtons.style.display = 'flex';
@@ -83,6 +87,9 @@ function updateAuthUI() {
             userInfo.classList.add('d-none');
         }
         if (dashboardLink) dashboardLink.style.display = 'none';
+        profileLinks.forEach(link => {
+            link.style.display = 'none';
+        });
     }
 }
 

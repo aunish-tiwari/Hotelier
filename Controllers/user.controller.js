@@ -20,6 +20,18 @@ exports.getRoomDetail = (req, res) => {
     res.render('Client/room-detail');
 };
 
+exports.getMyBookings = (req, res) => {
+    res.render('Client/my-bookings');
+};
+
+exports.getMyBookingDetails = (req, res) => {
+    res.render('Client/my-booking-details');
+};
+
+exports.getProfile = (req, res) => {
+    res.render('Client/profile');
+};
+
 exports.getTeam = (req, res) => {
     res.render('Client/team');
 };
@@ -107,6 +119,28 @@ exports.postContact = async (req, res) => {
     }
 };
 
+exports.getSiteStatsApi = async (req, res) => {
+    try {
+        const [roomsResult, clientsResult, staffResult] = await Promise.all([
+            pool.query('SELECT COUNT(*)::int AS count FROM rooms'),
+            pool.query("SELECT COUNT(*)::int AS count FROM users WHERE role = 'user'"),
+            pool.query("SELECT COUNT(*)::int AS count FROM users WHERE role = 'admin'")
+        ]);
+
+        return res.status(200).json({
+            status: 'success',
+            stats: {
+                rooms: roomsResult.rows[0].count,
+                clients: clientsResult.rows[0].count,
+                staff: staffResult.rows[0].count
+            }
+        });
+    } catch (error) {
+        console.error('Error loading site stats:', error);
+        return res.status(500).json({ status: 'error', message: 'Failed to load site stats.' });
+    }
+};
+
 exports.getRoomsApi = async (req, res) => {
     try {
         const {
@@ -114,7 +148,9 @@ exports.getRoomsApi = async (req, res) => {
             page = 1,
             minPrice,
             maxPrice,
-            capacity
+            capacity,
+            type,
+            search
         } = req.query;
 
         const conditions = [];
@@ -133,6 +169,16 @@ exports.getRoomsApi = async (req, res) => {
         if (capacity) {
             values.push(Number(capacity));
             conditions.push(`r.capacity >= $${values.length}`);
+        }
+
+        if (type) {
+            values.push(`%${String(type).trim()}%`);
+            conditions.push(`r.name ILIKE $${values.length}`);
+        }
+
+        if (search) {
+            values.push(`%${String(search).trim()}%`);
+            conditions.push(`(r.name ILIKE $${values.length} OR r.description ILIKE $${values.length})`);
         }
 
         const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -282,11 +328,32 @@ exports.getRoomReviewsApi = async (req, res) => {
     try {
         const roomId = Number(req.query.room_id || req.query.roomId);
         if (!roomId) {
-            return res.status(200).json({ status: 'success', reviews: [] });
+            const latestReviewsQuery = `
+                SELECT
+                    rv.id,
+                    rv.room_id,
+                    COALESCE(NULLIF(rv.guest_name, ''), 'Guest') AS guest_name,
+                    rv.rating,
+                    rv.comment,
+                    rv.created_at,
+                    r.name AS room_name
+                FROM reviews rv
+                LEFT JOIN rooms r ON r.id = rv.room_id
+                ORDER BY rv.created_at DESC
+                LIMIT 12
+            `;
+            const latestReviews = await pool.query(latestReviewsQuery);
+            return res.status(200).json({ status: 'success', reviews: latestReviews.rows });
         }
 
         const query = `
-            SELECT id, room_id, guest_name, rating, comment, created_at
+            SELECT
+                id,
+                room_id,
+                COALESCE(NULLIF(guest_name, ''), 'Guest') AS guest_name,
+                rating,
+                comment,
+                created_at
             FROM reviews
             WHERE room_id = $1
             ORDER BY created_at DESC

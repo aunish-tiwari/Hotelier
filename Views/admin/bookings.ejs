@@ -208,58 +208,7 @@
 </head>
 
 <body>
-    <div id="header"></div>
-
-    <button class="menu-toggle" id="menuToggle">
-        <i class="fas fa-bars"></i>
-    </button>
-
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h3><i class="fas fa-hotel me-2"></i>Hotelier</h3>
-            <p>Admin Dashboard</p>
-        </div>
-        <div class="sidebar-menu">
-            <a href="/admin/index" class="menu-item">
-                <i class="fas fa-tachometer-alt"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="/admin/rooms" class="menu-item">
-                <i class="fas fa-bed"></i>
-                <span>Manage Rooms</span>
-            </a>
-            <a href="/admin/bookings" class="menu-item active">
-                <i class="fas fa-calendar-check"></i>
-                <span>Manage Bookings</span>
-            </a>
-            <a href="/admin/users" class="menu-item">
-                <i class="fas fa-users"></i>
-                <span>Manage Users</span>
-            </a>
-            <a href="/admin/reviews" class="menu-item">
-                <i class="fas fa-star"></i>
-                <span>Manage Reviews</span>
-            </a>
-            <a href="/admin/reports" class="menu-item">
-                <i class="fas fa-chart-line"></i>
-                <span>Reports</span>
-            </a>
-            <a href="/admin/settings" class="menu-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </a>
-            <hr class="mx-3 my-3" style="border-color: rgba(255,255,255,0.1);">
-            <a href="#" class="menu-item" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </a>
-            <a href="/" class="menu-item">
-                <i class="fas fa-globe"></i>
-                <span>View Website</span>
-            </a>
-        </div>
-    </div>
+    <%- include('../partials/admin-header', { activePage: 'bookings' }) %>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -339,6 +288,74 @@
                         <!-- Dynamic content -->
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Booking Modal -->
+    <div class="modal fade" id="editBookingModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2 text-primary"></i>Edit Booking</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editBookingForm">
+                        <input type="hidden" id="editBookingId">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Guest Name *</label>
+                                <input type="text" class="form-control" id="editGuestName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Guest Email *</label>
+                                <input type="email" class="form-control" id="editGuestEmail" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Guest Phone *</label>
+                                <input type="text" class="form-control" id="editGuestPhone" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Room *</label>
+                                <select class="form-select" id="editBookingRoom" required>
+                                    <% (rooms || []).forEach(function(room) { %>
+                                        <option value="<%= room.id %>"><%= room.name %> - ₹<%= Number(room.price_per_night || 0).toFixed(2) %></option>
+                                    <% }); %>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Check In *</label>
+                                <input type="date" class="form-control" id="editCheckIn" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Check Out *</label>
+                                <input type="date" class="form-control" id="editCheckOut" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Guests *</label>
+                                <input type="number" class="form-control" id="editGuests" min="1" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="editBookingStatus">
+                                    <option value="pending">Pending</option>
+                                    <option value="confirmed">Confirmed</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Special Request</label>
+                                <textarea class="form-control" id="editSpecialRequest" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary-custom" onclick="updateBooking()">Update Booking</button>
+                </div>
             </div>
         </div>
     </div>
@@ -513,6 +530,7 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script id="bookingsSeed" type="application/json"><%- JSON.stringify(bookings || []) %></script>
+    <script id="roomsSeed" type="application/json"><%- JSON.stringify(rooms || []) %></script>
 
     <script>
         toastr.options = {
@@ -524,8 +542,27 @@
 
         let bookingsData = [];
         let roomsList = [];
+        let adminRooms = [];
         let bookingsTable;
         let currentBooking = null;
+
+        function authHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('adminToken') || ''}`
+            };
+        }
+
+        function rawBookingId(bookingId) {
+            return String(bookingId || '').replace('BK-', '').replace(/^0+/, '') || bookingId;
+        }
+
+        function toDateInput(value) {
+            if (!value) {
+                return '';
+            }
+            return String(value).slice(0, 10);
+        }
 
         // Check admin authentication
         function checkAuth() {
@@ -548,10 +585,14 @@
 
         function loadBookings() {
             const bookingsSeed = document.getElementById('bookingsSeed');
+            const roomsSeed = document.getElementById('roomsSeed');
             bookingsData = bookingsSeed ? JSON.parse(bookingsSeed.textContent || '[]') : [];
+            adminRooms = roomsSeed ? JSON.parse(roomsSeed.textContent || '[]') : [];
 
             // Get unique rooms for filter
-            roomsList = [...new Map(bookingsData.map(b => [b.room.id, { id: b.room.id, name: b.room.name }])).values()];
+            roomsList = adminRooms.length
+                ? adminRooms.map(room => ({ id: room.id, name: room.name }))
+                : [...new Map(bookingsData.map(b => [b.room.id, { id: b.room.id, name: b.room.name }])).values()];
             populateRoomFilter();
             renderBookingsTable();
         }
@@ -580,14 +621,17 @@
                         <td>${booking.checkIn}</td>
                         <td>${booking.checkOut}</td>
                         <td>${nights}</td>
-                        <td>$${booking.total}</td>
+                        <td>₹${booking.total}</td>
                         <td><span class="status-badge status-${booking.status}">${booking.status}</span></td>
                         <td>
                             <button class="btn btn-sm btn-info me-1" onclick="viewBooking('${booking.id}')" title="View Details">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="btn btn-sm btn-primary-custom me-1" onclick="openUpdateStatus('${booking.id}')" title="Update Status">
+                            <button class="btn btn-sm btn-primary-custom me-1" onclick="openEditBooking('${booking.id}')" title="Edit Booking">
                                 <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary me-1" onclick="openUpdateStatus('${booking.id}')" title="Update Status">
+                                <i class="fas fa-sync-alt"></i>
                             </button>
                             ${booking.status !== 'cancelled' ? `<button class="btn btn-sm btn-danger" onclick="openCancelBooking('${booking.id}')" title="Cancel Booking">
                                 <i class="fas fa-times"></i>
@@ -645,11 +689,12 @@
                         <td>${booking.checkIn}</td>
                         <td>${booking.checkOut}</td>
                         <td>${nights}</td>
-                        <td>$${booking.total}</td>
+                        <td>₹${booking.total}</td>
                         <td><span class="status-badge status-${booking.status}">${booking.status}</span></td>
                         <td>
                             <button class="btn btn-sm btn-info me-1" onclick="viewBooking('${booking.id}')"><i class="fas fa-eye"></i></button>
-                            <button class="btn btn-sm btn-primary-custom me-1" onclick="openUpdateStatus('${booking.id}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-primary-custom me-1" onclick="openEditBooking('${booking.id}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary me-1" onclick="openUpdateStatus('${booking.id}')"><i class="fas fa-sync-alt"></i></button>
                             ${booking.status !== 'cancelled' ? `<button class="btn btn-sm btn-danger" onclick="openCancelBooking('${booking.id}')"><i class="fas fa-times"></i></button>` : ''}
                         </td>
                     </tr>
@@ -678,14 +723,14 @@
                 document.getElementById('viewGuestPhone').innerText = booking.guest.phone;
                 document.getElementById('viewRoomName').innerText = booking.room.name;
                 document.getElementById('viewRoomType').innerText = booking.room.type;
-                document.getElementById('viewPricePerNight').innerText = `$${booking.room.price}`;
+                document.getElementById('viewPricePerNight').innerText = `₹${booking.room.price}`;
                 document.getElementById('viewCheckIn').innerText = booking.checkIn;
                 document.getElementById('viewCheckOut').innerText = booking.checkOut;
                 document.getElementById('viewNights').innerText = nights;
                 document.getElementById('viewGuests').innerText = booking.guests;
-                document.getElementById('viewSubtotal').innerText = `$${booking.subtotal}`;
-                document.getElementById('viewTax').innerText = `$${booking.tax}`;
-                document.getElementById('viewTotal').innerText = `$${booking.total}`;
+                document.getElementById('viewSubtotal').innerText = `₹${booking.subtotal}`;
+                document.getElementById('viewTax').innerText = `₹${booking.tax}`;
+                document.getElementById('viewTotal').innerText = `₹${booking.total}`;
 
                 let paymentStatusHtml = '';
                 if (booking.paymentStatus === 'paid') {
@@ -747,24 +792,100 @@
             new bootstrap.Modal(document.getElementById('updateStatusModal')).show();
         }
 
-        function updateBookingStatus() {
+        function openEditBooking(bookingId) {
+            const booking = bookingsData.find(b => b.id === bookingId);
+            if (!booking) {
+                toastr.error('Booking not found.');
+                return;
+            }
+
+            document.getElementById('editBookingId').value = booking.id;
+            document.getElementById('editGuestName').value = booking.guest.name || '';
+            document.getElementById('editGuestEmail').value = booking.guest.email || '';
+            document.getElementById('editGuestPhone').value = booking.guest.phone || '';
+            document.getElementById('editBookingRoom').value = booking.room.id || '';
+            document.getElementById('editCheckIn').value = toDateInput(booking.checkIn);
+            document.getElementById('editCheckOut').value = toDateInput(booking.checkOut);
+            document.getElementById('editGuests').value = booking.guests || 1;
+            document.getElementById('editBookingStatus').value = booking.status || 'pending';
+            document.getElementById('editSpecialRequest').value = booking.specialRequest || '';
+
+            new bootstrap.Modal(document.getElementById('editBookingModal')).show();
+        }
+
+        async function updateBooking() {
+            const bookingId = document.getElementById('editBookingId').value;
+            const payload = {
+                guest_name: document.getElementById('editGuestName').value.trim(),
+                guest_email: document.getElementById('editGuestEmail').value.trim(),
+                guest_phone: document.getElementById('editGuestPhone').value.trim(),
+                room_id: Number(document.getElementById('editBookingRoom').value),
+                check_in: document.getElementById('editCheckIn').value,
+                check_out: document.getElementById('editCheckOut').value,
+                guests: Number(document.getElementById('editGuests').value),
+                status: document.getElementById('editBookingStatus').value,
+                special_requests: document.getElementById('editSpecialRequest').value.trim()
+            };
+
+            if (!payload.guest_name || !payload.guest_email || !payload.guest_phone || !payload.room_id || !payload.check_in || !payload.check_out || !payload.guests) {
+                toastr.error('Please fill all required booking fields.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/bookings/${rawBookingId(bookingId)}`, {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    toastr.error(data.message || 'Failed to update booking.');
+                    return;
+                }
+
+                toastr.success('Booking updated successfully');
+                bootstrap.Modal.getInstance(document.getElementById('editBookingModal'))?.hide();
+                setTimeout(function () {
+                    window.location.reload();
+                }, 700);
+            } catch (error) {
+                console.error(error);
+                toastr.error('Unable to connect to server.');
+            }
+        }
+
+        async function updateBookingStatus() {
             const bookingId = document.getElementById('updateBookingId').value;
             const newStatus = document.getElementById('newBookingStatus').value;
             const notes = document.getElementById('statusNotes').value;
 
-            const index = bookingsData.findIndex(b => b.id === bookingId);
-            if (index !== -1) {
-                bookingsData[index].status = newStatus;
-                if (newStatus === 'confirmed') {
-                    bookingsData[index].paymentStatus = 'paid';
+            try {
+                const response = await fetch(`/api/admin/bookings/${rawBookingId(bookingId)}/status`, {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ status: newStatus, notes })
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    toastr.error(data.message || 'Failed to update booking status.');
+                    return;
+                }
+
+                const index = bookingsData.findIndex(b => b.id === bookingId);
+                if (index !== -1) {
+                    bookingsData[index].status = newStatus;
+                    bookingsData[index].paymentStatus = newStatus === 'cancelled' ? 'refunded' : 'paid';
                 }
                 renderBookingsTable();
                 toastr.success(`Booking ${bookingId} status updated to ${newStatus}`);
-                if (notes) {
-                    console.log('Status change notes:', notes);
-                }
-                bootstrap.Modal.getInstance(document.getElementById('updateStatusModal')).hide();
+                bootstrap.Modal.getInstance(document.getElementById('updateStatusModal'))?.hide();
                 document.getElementById('statusNotes').value = '';
+            } catch (error) {
+                console.error(error);
+                toastr.error('Unable to connect to server.');
             }
         }
 
@@ -773,26 +894,40 @@
             new bootstrap.Modal(document.getElementById('cancelBookingModal')).show();
         }
 
-        function confirmCancelBooking() {
+        async function confirmCancelBooking() {
             const bookingId = document.getElementById('cancelBookingId').value;
             const reason = document.getElementById('cancelReason').value;
             const refund = document.getElementById('refundCheck').checked;
 
-            const index = bookingsData.findIndex(b => b.id === bookingId);
-            if (index !== -1) {
-                bookingsData[index].status = 'cancelled';
-                bookingsData[index].paymentStatus = refund ? 'refunded' : 'cancelled';
+            try {
+                const response = await fetch(`/api/admin/bookings/${rawBookingId(bookingId)}/status`, {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ status: 'cancelled', reason, refund })
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    toastr.error(data.message || 'Failed to cancel booking.');
+                    return;
+                }
+
+                const index = bookingsData.findIndex(b => b.id === bookingId);
+                if (index !== -1) {
+                    bookingsData[index].status = 'cancelled';
+                    bookingsData[index].paymentStatus = refund ? 'refunded' : 'cancelled';
+                }
                 renderBookingsTable();
                 toastr.success(`Booking ${bookingId} has been cancelled`);
-                if (reason) {
-                    console.log('Cancellation reason:', reason);
-                }
                 if (refund) {
                     toastr.info('Refund process initiated');
                 }
-                bootstrap.Modal.getInstance(document.getElementById('cancelBookingModal')).hide();
+                bootstrap.Modal.getInstance(document.getElementById('cancelBookingModal'))?.hide();
                 document.getElementById('cancelReason').value = '';
                 document.getElementById('refundCheck').checked = false;
+            } catch (error) {
+                console.error(error);
+                toastr.error('Unable to connect to server.');
             }
         }
 

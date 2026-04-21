@@ -235,58 +235,7 @@
 </head>
 
 <body>
-    <div id="header"></div>
-
-    <button class="menu-toggle" id="menuToggle">
-        <i class="fas fa-bars"></i>
-    </button>
-
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h3><i class="fas fa-hotel me-2"></i>Hotelier</h3>
-            <p>Admin Dashboard</p>
-        </div>
-        <div class="sidebar-menu">
-            <a href="/admin/index" class="menu-item">
-                <i class="fas fa-tachometer-alt"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="/admin/rooms" class="menu-item">
-                <i class="fas fa-bed"></i>
-                <span>Manage Rooms</span>
-            </a>
-            <a href="/admin/bookings" class="menu-item">
-                <i class="fas fa-calendar-check"></i>
-                <span>Manage Bookings</span>
-            </a>
-            <a href="/admin/users" class="menu-item">
-                <i class="fas fa-users"></i>
-                <span>Manage Users</span>
-            </a>
-            <a href="/admin/reviews" class="menu-item active">
-                <i class="fas fa-star"></i>
-                <span>Manage Reviews</span>
-            </a>
-            <a href="/admin/reports" class="menu-item">
-                <i class="fas fa-chart-line"></i>
-                <span>Reports</span>
-            </a>
-            <a href="/admin/settings" class="menu-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </a>
-            <hr class="mx-3 my-3" style="border-color: rgba(255,255,255,0.1);">
-            <a href="#" class="menu-item" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </a>
-            <a href="/" class="menu-item">
-                <i class="fas fa-globe"></i>
-                <span>View Website</span>
-            </a>
-        </div>
-    </div>
+    <%- include('../partials/admin-header', { activePage: 'reviews' }) %>
 
     <!-- Main Content -->
     <div class="main-content">

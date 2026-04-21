@@ -231,15 +231,7 @@
                                 <a href="/about" class="nav-item nav-link">About</a>
                                 <a href="/service" class="nav-item nav-link">Services</a>
                                 <a href="/room" class="nav-item nav-link">Rooms</a>
-                                <div class="nav-item dropdown">
-                                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
-                                    <div class="dropdown-menu rounded-0 m-0">
-                                        <a href="/booking" class="dropdown-item">Booking</a>
-                                        <a href="/room-detail" class="dropdown-item" id="dashboardLink" style="display:none;">My Dashboard</a>
-                                        <a href="/team" class="dropdown-item">Our Team</a>
-                                        <a href="/testimonial" class="dropdown-item">Testimonial</a>
-                                    </div>
-                                </div>
+                                <a href="/my-bookings" class="nav-item nav-link" id="dashboardLink" style="display:none;">My Bookings</a>
                                 <a href="/contact" class="nav-item nav-link">Contact</a>
                             </div>
                             <div id="authButtons">
@@ -265,7 +257,7 @@
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb justify-content-center text-uppercase">
                             <li class="breadcrumb-item"><a href="/">Home</a></li>
-                            <li class="breadcrumb-item"><a href="/booking">Booking</a></li>
+                            <li class="breadcrumb-item"><a href="/room">Rooms</a></li>
                             <li class="breadcrumb-item text-white active" aria-current="page">Confirmation</li>
                         </ol>
                     </nav>
@@ -380,7 +372,7 @@
                                         <div class="price-breakdown">
                                             <div class="detail-row">
                                                 <span class="detail-label">Room Rate per Night:</span>
-                                                <span class="detail-value">$<span id="ratePerNight">0</span></span>
+                                                <span class="detail-value">₹<span id="ratePerNight">0</span></span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">Number of Nights:</span>
@@ -388,19 +380,19 @@
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">Subtotal:</span>
-                                                <span class="detail-value">$<span id="subtotal">0</span></span>
+                                                <span class="detail-value">₹<span id="subtotal">0</span></span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">Tax (12%):</span>
-                                                <span class="detail-value">$<span id="tax">0</span></span>
+                                                <span class="detail-value">₹<span id="tax">0</span></span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">Service Fee:</span>
-                                                <span class="detail-value">$<span id="serviceFee">0</span></span>
+                                                <span class="detail-value">₹<span id="serviceFee">0</span></span>
                                             </div>
                                             <div class="total-amount mt-3">
                                                 <small>Total Amount Paid</small>
-                                                <h3>$<span id="totalAmount">0</span></h3>
+                                                <h3>₹<span id="totalAmount">0</span></h3>
                                             </div>
                                         </div>
                                     </div>
@@ -460,7 +452,7 @@
                                         <button class="btn btn-outline-primary" id="downloadInvoiceBtn">
                                             <i class="fas fa-download me-2"></i>Download Invoice
                                         </button>
-                                        <a href="/room-detail" class="btn btn-outline-secondary">
+                                        <a href="/my-bookings" class="btn btn-outline-secondary">
                                             <i class="fas fa-tachometer-alt me-2"></i>View Dashboard
                                         </a>
                                         <a href="/room" class="btn btn-outline-secondary">
@@ -507,8 +499,8 @@
                                 </div>
                                 <h3 class="mb-3">Booking Not Found</h3>
                                 <p class="text-muted mb-4">We couldn't find the booking information you're looking for.</p>
-                                <a href="/room-detail" class="btn btn-primary me-2">Go to Dashboard</a>
-                                <a href="/booking" class="btn btn-outline-primary">Make a New Booking</a>
+                                <a href="/my-bookings" class="btn btn-primary me-2">Go to Dashboard</a>
+                                <a href="/room" class="btn btn-outline-primary">Browse Rooms</a>
                             </div>
                         </div>
                     </div>
@@ -608,16 +600,31 @@
         let currentBooking = null;
         let currentRoom = null;
         let countdownInterval = null;
+
+        function setPanelState(state) {
+            const loadingDiv = document.getElementById('loadingContent');
+            const contentDiv = document.getElementById('confirmationContent');
+            const errorDiv = document.getElementById('errorContent');
+
+            if (loadingDiv) loadingDiv.style.display = state === 'loading' ? 'block' : 'none';
+            if (contentDiv) contentDiv.style.display = state === 'success' ? 'block' : 'none';
+            if (errorDiv) errorDiv.style.display = state === 'error' ? 'block' : 'none';
+        }
+
+        function showError() {
+            setPanelState('error');
+        }
         
         // Get booking ID from URL
         function getBookingIdFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('booking');
+            return urlParams.get('booking') || urlParams.get('id');
         }
         
         // Load booking details
         async function loadBookingDetails() {
-            const bookingId = getBookingIdFromURL();
+            let bookingId = getBookingIdFromURL();
+            setPanelState('loading');
             
             if (!bookingId) {
                 // Try to get from session storage (for new bookings)
@@ -625,24 +632,19 @@
                 if (savedBooking) {
                     try {
                         const booking = JSON.parse(savedBooking);
-                        displayBookingDetails(booking);
-                        return;
+                        bookingId = booking.id;
                     } catch (e) {
                         console.error('Error parsing saved booking:', e);
                     }
                 }
-                
-                // Show error if no booking found
+            }
+            
+            if (!bookingId) {
                 showError();
                 return;
             }
             
-            const loadingDiv = document.getElementById('loadingContent');
-            const contentDiv = document.getElementById('confirmationContent');
-            const errorDiv = document.getElementById('errorContent');
-            
             try {
-                // Fetch booking details from API
                 const booking = await getUserBookingById(bookingId);
                 currentBooking = booking;
                 
@@ -651,18 +653,15 @@
                     currentRoom = await getRoomById(booking.room_id);
                 }
                 
-                loadingDiv.style.display = 'none';
-                contentDiv.style.display = 'block';
-                
                 displayBookingDetails(booking);
+                setPanelState('success');
                 
                 // Start countdown timer (for payment window if applicable)
                 startCountdown();
                 
             } catch (error) {
                 console.error('Error loading booking:', error);
-                loadingDiv.style.display = 'none';
-                errorDiv.style.display = 'block';
+                showError();
             }
         }
         
@@ -673,8 +672,12 @@
             
             // Set booking details
             document.getElementById('bookingDate').textContent = formatDate(booking.created_at || new Date());
-            document.getElementById('bookingStatus').innerHTML = `<span class="badge bg-${getStatusColor(booking.status)}">${booking.status || 'Confirmed'}</span>`;
-            document.getElementById('paymentStatus').innerHTML = `<span class="badge bg-${getPaymentStatusColor(booking.payment_status)}">${booking.payment_status || 'Paid'}</span>`;
+            const bookingStatus = document.getElementById('bookingStatus');
+            const paymentStatus = document.getElementById('paymentStatus');
+            bookingStatus.className = `badge bg-${getStatusColor(booking.status)}`;
+            bookingStatus.textContent = booking.status || 'Confirmed';
+            paymentStatus.className = `badge bg-${getPaymentStatusColor(booking.payment_status)}`;
+            paymentStatus.textContent = booking.payment_status || 'Paid';
             
             // Set room details
             if (currentRoom) {
@@ -688,7 +691,7 @@
             document.getElementById('checkIn').textContent = formatDate(booking.check_in);
             document.getElementById('checkOut').textContent = formatDate(booking.check_out);
             
-            const nights = calculateNights(booking.check_in, booking.check_out);
+            const nights = Math.max(calculateNights(booking.check_in, booking.check_out), 1);
             document.getElementById('nights').textContent = nights;
             document.getElementById('nightsCount').textContent = nights;
             
@@ -700,19 +703,22 @@
             document.getElementById('guestPhone').textContent = booking.guest_phone || booking.user_phone || 'Not provided';
             document.getElementById('confirmEmail').textContent = booking.guest_email || booking.user_email || 'your email';
             
+            const specialRequestRow = document.getElementById('specialRequestRow');
             if (booking.special_requests) {
-                document.getElementById('specialRequestRow').style.display = 'flex';
+                specialRequestRow.style.display = 'flex';
                 document.getElementById('specialRequest').textContent = booking.special_requests;
+            } else {
+                specialRequestRow.style.display = 'none';
             }
             
             // Set price details
-            const ratePerNight = currentRoom?.price_per_night || booking.rate_per_night || 100;
+            const ratePerNight = Number(currentRoom?.price_per_night || booking.rate_per_night || 0);
             const subtotal = ratePerNight * nights;
             const tax = subtotal * 0.12;
             const serviceFee = 0;
-            const total = booking.total_price || subtotal + tax + serviceFee;
+            const total = Number(booking.total_price || 0) || subtotal + tax + serviceFee;
             
-            document.getElementById('ratePerNight').textContent = ratePerNight;
+            document.getElementById('ratePerNight').textContent = ratePerNight.toFixed(2);
             document.getElementById('subtotal').textContent = subtotal.toFixed(2);
             document.getElementById('tax').textContent = tax.toFixed(2);
             document.getElementById('serviceFee').textContent = serviceFee.toFixed(2);
@@ -826,39 +832,9 @@
             window.location.href = `mailto:?subject=My Hotelier Booking Confirmation&body=${encodeURIComponent(shareText + '\n\nView details: ' + shareUrl)}`;
         });
         
-        // Mock API function (replace with actual API call)
         async function getUserBookingById(bookingId) {
-            // This should be replaced with actual API call
-            // For demo purposes, returning mock data or checking localStorage
-            
-            // Check if booking exists in localStorage (for demo)
-            const savedBookings = localStorage.getItem('bookings');
-            if (savedBookings) {
-                const bookings = JSON.parse(savedBookings);
-                const booking = bookings.find(b => b.id == bookingId);
-                if (booking) return booking;
-            }
-            
-            // Mock data for demo
-            return {
-                id: bookingId,
-                booking_reference: `HOT-${bookingId}-${Date.now().toString().slice(-6)}`,
-                created_at: new Date().toISOString(),
-                status: 'confirmed',
-                payment_status: 'paid',
-                room_name: 'Executive Suite',
-                room_type: 'Luxury',
-                check_in: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                check_out: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                guests: 2,
-                guest_name: getCurrentUser()?.name || 'John Doe',
-                guest_email: getCurrentUser()?.email || 'john@example.com',
-                guest_phone: '+91 98765 43210',
-                special_requests: 'Prefer room with ocean view',
-                rate_per_night: 150,
-                total_price: 504,
-                room_id: 1
-            };
+            const response = await getBookingById(bookingId);
+            return response.booking || response;
         }
         
         // Clear last booking from session storage after loading

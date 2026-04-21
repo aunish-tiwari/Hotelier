@@ -232,58 +232,7 @@
 </head>
 
 <body>
-    <div id="header"></div>
-
-    <button class="menu-toggle" id="menuToggle">
-        <i class="fas fa-bars"></i>
-    </button>
-
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h3><i class="fas fa-hotel me-2"></i>Hotelier</h3>
-            <p>Admin Dashboard</p>
-        </div>
-        <div class="sidebar-menu">
-            <a href="/admin/index" class="menu-item active">
-                <i class="fas fa-tachometer-alt"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="/admin/rooms" class="menu-item">
-                <i class="fas fa-bed"></i>
-                <span>Manage Rooms</span>
-            </a>
-            <a href="/admin/bookings" class="menu-item">
-                <i class="fas fa-calendar-check"></i>
-                <span>Manage Bookings</span>
-            </a>
-            <a href="/admin/users" class="menu-item">
-                <i class="fas fa-users"></i>
-                <span>Manage Users</span>
-            </a>
-            <a href="/admin/reviews" class="menu-item">
-                <i class="fas fa-star"></i>
-                <span>Manage Reviews</span>
-            </a>
-            <a href="/admin/reports" class="menu-item">
-                <i class="fas fa-chart-line"></i>
-                <span>Reports</span>
-            </a>
-            <a href="/admin/settings" class="menu-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </a>
-            <hr class="mx-3 my-3" style="border-color: rgba(255,255,255,0.1);">
-            <a href="#" class="menu-item" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </a>
-            <a href="/" class="menu-item">
-                <i class="fas fa-globe"></i>
-                <span>View Website</span>
-            </a>
-        </div>
-    </div>
+    <%- include('../partials/admin-header', { activePage: 'dashboard' }) %>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -298,8 +247,7 @@
                         <span id="adminName">Admin User</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                        <li><a class="dropdown-item" href="/admin/contacts"><i class="fas fa-envelope me-2"></i>Contact Messages</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
@@ -359,11 +307,11 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <p class="text-muted mb-1">Revenue (This Month)</p>
-                            <div class="stat-number" id="totalRevenue">$<%= stats ? Number(stats.totalRevenue).toFixed(2) : '0.00' %></div>
+                            <div class="stat-number" id="totalRevenue">₹<%= stats ? Number(stats.totalRevenue).toFixed(2) : '0.00' %></div>
                             <small class="text-success"><i class="fas fa-arrow-up"></i> +23%</small>
                         </div>
                         <div class="stat-icon danger">
-                            <i class="fas fa-dollar-sign"></i>
+                            <i class="fas fa-rupee-sign"></i>
                         </div>
                     </div>
                 </div>
@@ -421,7 +369,7 @@
                                                     <%= booking.status %>
                                                 </span>
                                             </td>
-                                            <td>$<%= Number(booking.total_price || 0).toFixed(2) %></td>
+                                            <td>₹<%= Number(booking.total_price || 0).toFixed(2) %></td>
                                         </tr>
                                     <% }); %>
                                 <% } else { %>
@@ -441,6 +389,62 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="/js/admin-auth.js"></script>
+    <script>
+        const dashboardBookings = <%- JSON.stringify(Array.isArray(recentBookings) ? recentBookings : []) %>;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof Chart === 'undefined') return;
+
+            const groupedByDate = dashboardBookings.reduce((acc, booking) => {
+                const key = booking.check_in ? new Date(booking.check_in).toISOString().split('T')[0] : 'No date';
+                acc[key] = (acc[key] || 0) + 1;
+                return acc;
+            }, {});
+
+            const bookingLabels = Object.keys(groupedByDate).slice(-7);
+            const bookingValues = bookingLabels.map(label => groupedByDate[label]);
+
+            const bookingChart = document.getElementById('bookingChart');
+            if (bookingChart) {
+                new Chart(bookingChart, {
+                    type: 'line',
+                    data: {
+                        labels: bookingLabels.length ? bookingLabels : ['No bookings'],
+                        datasets: [{
+                            label: 'Bookings',
+                            data: bookingValues.length ? bookingValues : [0],
+                            borderColor: '#f3b33d',
+                            backgroundColor: 'rgba(243, 179, 61, 0.15)',
+                            tension: 0.35,
+                            fill: true
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            const statusCounts = dashboardBookings.reduce((acc, booking) => {
+                const status = booking.status || 'pending';
+                acc[status] = (acc[status] || 0) + 1;
+                return acc;
+            }, {});
+
+            const occupancyChart = document.getElementById('occupancyChart');
+            if (occupancyChart) {
+                new Chart(occupancyChart, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(statusCounts).length ? Object.keys(statusCounts) : ['No bookings'],
+                        datasets: [{
+                            data: Object.values(statusCounts).length ? Object.values(statusCounts) : [1],
+                            backgroundColor: ['#f3b33d', '#28a745', '#dc3545', '#17a2b8']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+        });
+    </script>
 
 
     <div id="footer"></div>

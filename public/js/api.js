@@ -56,12 +56,32 @@ async function getRoomById(id) {
     return apiRequest(`/rooms/${id}`);
 }
 
+async function getSiteStats() {
+    return apiRequest('/site-stats');
+}
+
+async function getReviews(filters = {}) {
+    const params = new URLSearchParams(filters).toString();
+    return apiRequest(`/reviews${params ? `?${params}` : ''}`);
+}
+
+async function createReview(reviewData) {
+    return apiRequest('/reviews', {
+        method: 'POST',
+        body: JSON.stringify(reviewData)
+    });
+}
+
 // Booking APIs
 async function createBooking(bookingData) {
     return apiRequest('/bookings', {
         method: 'POST',
         body: JSON.stringify(bookingData)
     });
+}
+
+async function getBookingById(bookingId) {
+    return apiRequest(`/bookings/${bookingId}`);
 }
 
 async function getUserBookings() {

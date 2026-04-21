@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Hotelier - My Bookings</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <link href="/img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+
+    <style>
+        .booking-card {
+            border: 1px solid #eef1f5;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+        }
+
+        .booking-meta {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1px;
+            background: #eef1f5;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .booking-meta-item {
+            background: #fff;
+            padding: 16px;
+        }
+
+        @media (max-width: 991.98px) {
+            .booking-meta {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .booking-meta {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-xxl bg-white p-0">
+        <%- include('../partials/header', { currentPage: 'bookings' }) %>
+
+        <div class="container-fluid page-header mb-5 p-0" style="background-image: url(img/carousel-1.jpg);">
+            <div class="container-fluid page-header-inner py-5">
+                <div class="container text-center pb-5">
+                    <h1 class="display-3 text-white mb-3 animated slideInDown">My Bookings</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center text-uppercase">
+                            <li class="breadcrumb-item"><a href="/">Home</a></li>
+                            <li class="breadcrumb-item text-white active" aria-current="page">My Bookings</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <div class="container-xxl py-5">
+            <div class="container">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+                    <div>
+                        <h2 class="mb-1">Your Reservations</h2>
+                        <p class="text-muted mb-0" id="bookingOwner">Loading your booking history...</p>
+                    </div>
+                    <a href="/room" class="btn btn-primary">
+                        <i class="fa fa-bed me-2"></i>Browse Rooms
+                    </a>
+                </div>
+
+                <div id="bookingLoading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Checking your session and bookings...</p>
+                </div>
+
+                <div id="bookingError" class="alert alert-warning d-none" role="alert"></div>
+
+                <div id="bookingEmpty" class="text-center bg-light rounded p-5 d-none">
+                    <i class="fa fa-calendar-times fa-3x text-primary mb-3"></i>
+                    <h4>No bookings yet</h4>
+                    <p class="text-muted">Once you reserve a room, it will appear here.</p>
+                    <a href="/room" class="btn btn-primary">Book Your First Room</a>
+                </div>
+
+                <div id="bookingsList" class="row g-4"></div>
+            </div>
+        </div>
+
+        <%- include('../partials/footer') %>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char]));
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '-';
+            return date.toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function getStatusBadge(status) {
+            const normalized = String(status || 'pending').toLowerCase();
+            const badgeClass = normalized === 'cancelled'
+                ? 'danger'
+                : normalized === 'confirmed'
+                    ? 'success'
+                    : 'warning';
+
+            return `<span class="badge bg-${badgeClass} text-uppercase">${escapeHtml(normalized)}</span>`;
+        }
+
+        function setState(state, message = '') {
+            document.getElementById('bookingLoading').classList.toggle('d-none', state !== 'loading');
+            document.getElementById('bookingError').classList.toggle('d-none', state !== 'error');
+            document.getElementById('bookingEmpty').classList.toggle('d-none', state !== 'empty');
+            document.getElementById('bookingsList').classList.toggle('d-none', state !== 'ready');
+
+            if (state === 'error') {
+                document.getElementById('bookingError').textContent = message;
+            }
+        }
+
+        function renderBooking(booking) {
+            const status = String(booking.status || 'pending').toLowerCase();
+            const canCancel = status !== 'cancelled';
+
+            return `
+                <div class="col-12">
+                    <div class="booking-card p-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                            <div>
+                                <h4 class="mb-1">${escapeHtml(booking.room_name || 'Room Not Available')}</h4>
+                                <p class="text-muted mb-0">Booking #HOT-${String(booking.id).padStart(5, '0')}</p>
+                            </div>
+                            <div class="text-md-end">
+                                ${getStatusBadge(status)}
+                                <h5 class="text-primary mt-2 mb-0">&#8377;${Number(booking.total_price || 0).toFixed(2)}</h5>
+                            </div>
+                        </div>
+
+                        <div class="booking-meta mb-4">
+                            <div class="booking-meta-item">
+                                <small class="text-muted d-block">Check In</small>
+                                <strong>${formatDate(booking.check_in)}</strong>
+                            </div>
+                            <div class="booking-meta-item">
+                                <small class="text-muted d-block">Check Out</small>
+                                <strong>${formatDate(booking.check_out)}</strong>
+                            </div>
+                            <div class="booking-meta-item">
+                                <small class="text-muted d-block">Guests</small>
+                                <strong>${Number(booking.guests || 0)} Guest(s)</strong>
+                            </div>
+                            <div class="booking-meta-item">
+                                <small class="text-muted d-block">Booked On</small>
+                                <strong>${formatDate(booking.created_at)}</strong>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="/my-bookings/${encodeURIComponent(booking.id)}" class="btn btn-outline-primary btn-sm">
+                                <i class="fa fa-eye me-2"></i>View Details
+                            </a>
+                            ${canCancel ? `
+                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="cancelUserBooking(${Number(booking.id)})">
+                                    <i class="fa fa-times me-2"></i>Cancel Booking
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadMyBookings() {
+            if (!safeIsLoggedIn()) {
+                window.location.href = '/login?redirect=/my-bookings';
+                return;
+            }
+
+            const user = safeGetCurrentUser();
+            if (!user || !user.email) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login?redirect=/my-bookings';
+                return;
+            }
+
+            document.getElementById('bookingOwner').textContent = `Bookings linked to ${user.email}`;
+            setState('loading');
+
+            try {
+                const response = await getUserBookings();
+                const bookings = response.bookings || [];
+
+                if (bookings.length === 0) {
+                    setState('empty');
+                    return;
+                }
+
+                document.getElementById('bookingsList').innerHTML = bookings.map(renderBooking).join('');
+                setState('ready');
+            } catch (error) {
+                setState('error', error.message || 'Unable to load your bookings. Please login again and try later.');
+            }
+        }
+
+        async function cancelUserBooking(bookingId) {
+            if (!bookingId || !confirm('Cancel this booking?')) {
+                return;
+            }
+
+            try {
+                await cancelBooking(bookingId);
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('Booking cancelled successfully');
+                }
+                await loadMyBookings();
+            } catch (error) {
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(error.message || 'Unable to cancel booking');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadMyBookings);
+    </script>
+</body>
+
+</html>

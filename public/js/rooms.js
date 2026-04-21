@@ -13,10 +13,10 @@ function renderStars(rating) {
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log('Rooms page loaded - API_BASE_URL:', API_BASE_URL);
-    loadRooms();
     setupFilters();
     setupURLParams();
     setupLoadMore();
+    loadRooms();
 });
 
 async function loadRooms(append = false) {
@@ -52,7 +52,7 @@ async function loadRooms(append = false) {
                     <div class="room-item shadow rounded overflow-hidden">
                         <div class="position-relative">
                             <img class="img-fluid" src="${imageUrl}" alt="${room.name}" onerror="this.src='../img/room-1.jpg'">
-                            <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">$${price}/Night</small>
+                            <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">₹${price}/Night</small>
                         </div>
                         <div class="p-4 mt-2">
                             <div class="d-flex justify-content-between mb-3">
@@ -67,9 +67,8 @@ async function loadRooms(append = false) {
                                 <small><i class="fa fa-wifi text-primary me-2"></i>Wifi</small>
                             </div>
                             <p class="text-body mb-3">${room.description || 'Experience luxury and comfort in our premium rooms.'}</p>
-                            <div class="d-flex justify-content-between">
-                                <button class="btn btn-sm btn-primary rounded py-2 px-4" onclick="showRoomDetail(${room.id})">View Detail</button>
-                                <a class="btn btn-sm btn-dark rounded py-2 px-4" href="/booking?room=${room.id}">Book Now</a>
+                            <div class="d-flex">
+                                <button class="btn btn-sm btn-primary rounded py-2 px-4 w-100" onclick="showRoomDetail(${room.id})">View Detail</button>
                             </div>
                         </div>
                     </div>
@@ -119,21 +118,51 @@ async function loadRooms(append = false) {
 
 function setupFilters() {
     const applyBtn = document.getElementById('applyFiltersBtn');
+    const clearBtn = document.getElementById('clearFiltersBtn');
+    const searchInput = document.getElementById('searchRooms');
+
+    function applyFilters() {
+        const search = searchInput?.value.trim();
+        const roomType = document.getElementById('filterRoomType')?.value;
+        const price = document.getElementById('filterPrice')?.value;
+        const capacity = document.getElementById('filterCapacity')?.value;
+
+        currentFilters = {};
+        if (search) currentFilters.search = search;
+        if (roomType) currentFilters.type = roomType;
+        if (price) {
+            const [min, max] = price.split('-');
+            currentFilters.minPrice = min;
+            currentFilters.maxPrice = max;
+        }
+        if (capacity) currentFilters.capacity = capacity;
+
+        currentPage = 1;
+        loadRooms(false);
+    }
+
     if (applyBtn) {
-        applyBtn.addEventListener('click', function () {
-            const roomType = document.getElementById('filterRoomType')?.value;
-            const price = document.getElementById('filterPrice')?.value;
-            const capacity = document.getElementById('filterCapacity')?.value;
+        applyBtn.addEventListener('click', applyFilters);
+    }
 
-            currentFilters = {};
-            if (roomType) currentFilters.type = roomType;
-            if (price) {
-                const [min, max] = price.split('-');
-                currentFilters.minPrice = min;
-                currentFilters.maxPrice = max;
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function (event) {
+            if (event.key === 'Enter') {
+                applyFilters();
             }
-            if (capacity) currentFilters.capacity = capacity;
+        });
+    }
 
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function () {
+            if (searchInput) searchInput.value = '';
+            const roomType = document.getElementById('filterRoomType');
+            const price = document.getElementById('filterPrice');
+            const capacity = document.getElementById('filterCapacity');
+            if (roomType) roomType.value = '';
+            if (price) price.value = '';
+            if (capacity) capacity.value = '';
+            currentFilters = {};
             currentPage = 1;
             loadRooms(false);
         });
@@ -153,8 +182,6 @@ function setupURLParams() {
     }
     if (adults) currentFilters.adults = adults;
     if (children) currentFilters.children = children;
-
-    loadRooms();
 }
 
 function showRoomDetail(roomId) {

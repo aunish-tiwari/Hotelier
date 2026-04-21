@@ -57,6 +57,9 @@
                                         <input type="checkbox" class="form-check-input" id="rememberMe">
                                         <label class="form-check-label" for="rememberMe">Remember me</label>
                                     </div>
+                                    <div class="text-end mb-3">
+                                        <a href="/forgot-password">Forgot password?</a>
+                                    </div>
                                     <button type="submit" class="btn btn-primary w-100 py-2">Login</button>
                                 </form>
 
@@ -130,8 +133,9 @@
                     localStorage.removeItem('adminUser');
                 }
 
+                const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/';
                 setTimeout(() => {
-                    window.location.href = data.user && data.user.role === 'admin' ? '/admin/index' : '/';
+                    window.location.href = data.user && data.user.role === 'admin' ? '/admin/index' : redirectUrl;
                 }, 1000);
             } catch (error) {
                 showLoginMessage('danger', 'Unable to connect to server');

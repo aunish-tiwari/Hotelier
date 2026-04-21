@@ -183,58 +183,7 @@
 </head>
 
 <body>
-    <div id="header"></div>
-
-    <button class="menu-toggle" id="menuToggle">
-        <i class="fas fa-bars"></i>
-    </button>
-
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h3><i class="fas fa-hotel me-2"></i>Hotelier</h3>
-            <p>Admin Dashboard</p>
-        </div>
-        <div class="sidebar-menu">
-            <a href="/admin/index" class="menu-item">
-                <i class="fas fa-tachometer-alt"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="/admin/rooms" class="menu-item active">
-                <i class="fas fa-bed"></i>
-                <span>Manage Rooms</span>
-            </a>
-            <a href="/admin/bookings" class="menu-item">
-                <i class="fas fa-calendar-check"></i>
-                <span>Manage Bookings</span>
-            </a>
-            <a href="/admin/users" class="menu-item">
-                <i class="fas fa-users"></i>
-                <span>Manage Users</span>
-            </a>
-            <a href="/admin/reviews" class="menu-item">
-                <i class="fas fa-star"></i>
-                <span>Manage Reviews</span>
-            </a>
-            <a href="/admin/reports" class="menu-item">
-                <i class="fas fa-chart-line"></i>
-                <span>Reports</span>
-            </a>
-            <a href="/admin/settings" class="menu-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </a>
-            <hr class="mx-3 my-3" style="border-color: rgba(255,255,255,0.1);">
-            <a href="#" class="menu-item" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </a>
-            <a href="/" class="menu-item">
-                <i class="fas fa-globe"></i>
-                <span>View Website</span>
-            </a>
-        </div>
-    </div>
+    <%- include('../partials/admin-header', { activePage: 'rooms' }) %>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -290,12 +239,15 @@
                                     </td>
                                     <td><strong><%= room.name %></strong></td>
                                     <td><%= room.name %></td>
-                                    <td>$<%= Number(room.price_per_night || 0).toFixed(2) %></td>
+                                    <td>₹<%= Number(room.price_per_night || 0).toFixed(2) %></td>
                                     <td><%= room.beds || 1 %></td>
                                     <td><span class="status-badge status-available">available</span></td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+                                        <button class="btn btn-sm btn-primary-custom me-1" type="button" onclick="openEditRoom(<%= room.id %>)" title="Edit Room">
                                             <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" type="button" onclick="openDeleteRoom(<%= room.id %>)" title="Delete Room">
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -337,7 +289,7 @@
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Price per Night ($) *</label>
+                                <label class="form-label">Price per Night (₹) *</label>
                                 <input type="number" class="form-control" id="roomPrice" required>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -410,7 +362,7 @@
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Price per Night ($) *</label>
+                                <label class="form-label">Price per Night (₹) *</label>
                                 <input type="number" class="form-control" id="editRoomPrice" required>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -482,6 +434,7 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script id="roomsSeed" type="application/json"><%- JSON.stringify(rooms || []) %></script>
 
     <script>
         toastr.options = {
@@ -490,6 +443,58 @@
             positionClass: 'toast-top-right',
             timeOut: 3000
         };
+
+        const roomsSeed = document.getElementById('roomsSeed');
+        const roomsData = roomsSeed ? JSON.parse(roomsSeed.textContent || '[]') : [];
+
+        function authHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('adminToken') || ''}`
+            };
+        }
+
+        function splitRoomDescription(description) {
+            const parts = String(description || '').split(' | ');
+            const roomType = parts[0] || '';
+            const amenitiesPart = parts.find(part => part.startsWith('Amenities: ')) || '';
+            const details = parts.filter(part => part && part !== roomType && !part.startsWith('Amenities: ')).join(' | ');
+            return {
+                roomType,
+                details,
+                amenities: amenitiesPart.replace('Amenities: ', '')
+            };
+        }
+
+        function buildRoomPayload(prefix) {
+            const baseId = prefix ? `${prefix}Room` : 'room';
+            const name = document.getElementById(`${baseId}Name`).value.trim();
+            const roomType = document.getElementById(`${baseId}Type`).value.trim();
+            const price = Number(document.getElementById(`${baseId}Price`).value);
+            const capacity = Number(document.getElementById(`${baseId}Capacity`).value);
+            const beds = Number(document.getElementById(`${baseId}Beds`).value);
+            const bathrooms = Number(document.getElementById(`${baseId}Bathrooms`).value);
+            const description = document.getElementById(`${baseId}Description`).value.trim();
+            const amenities = document.getElementById(`${baseId}Amenities`).value.trim();
+            const imageUrl = document.getElementById(`${baseId}Image`).value.trim();
+
+            if (!name || !roomType || !price || !capacity || !beds || !bathrooms) {
+                toastr.error('Please fill all required fields.');
+                return null;
+            }
+
+            return {
+                name,
+                price_per_night: price,
+                capacity,
+                beds,
+                bathrooms,
+                image_url: imageUrl || 'img/room-1.jpg',
+                description: [roomType, description, amenities ? `Amenities: ${amenities}` : '']
+                    .filter(Boolean)
+                    .join(' | ')
+            };
+        }
 
         function checkAuth() {
             const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
@@ -522,40 +527,15 @@
         }
 
         async function addRoom() {
-            const name = document.getElementById('roomName').value.trim();
-            const roomType = document.getElementById('roomType').value.trim();
-            const price = Number(document.getElementById('roomPrice').value);
-            const capacity = Number(document.getElementById('roomCapacity').value);
-            const beds = Number(document.getElementById('roomBeds').value);
-            const bathrooms = Number(document.getElementById('roomBathrooms').value);
-            const description = document.getElementById('roomDescription').value.trim();
-            const amenities = document.getElementById('roomAmenities').value.trim();
-            const imageUrl = document.getElementById('roomImage').value.trim();
-
-            if (!name || !roomType || !price || !capacity || !beds || !bathrooms) {
-                toastr.error('Please fill all required fields.');
+            const payload = buildRoomPayload('');
+            if (!payload) {
                 return;
             }
-
-            const payload = {
-                name,
-                price_per_night: price,
-                capacity,
-                beds,
-                bathrooms,
-                image_url: imageUrl || 'img/room-1.jpg',
-                description: [roomType, description, amenities ? `Amenities: ${amenities}` : '']
-                    .filter(Boolean)
-                    .join(' | ')
-            };
 
             try {
                 const response = await fetch('/api/admin/rooms', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('adminToken') || ''}`
-                    },
+                    headers: authHeaders(),
                     body: JSON.stringify(payload)
                 });
 
@@ -581,12 +561,92 @@
             }
         }
 
-        function updateRoom() {
-            toastr.info('Update room is not enabled yet.');
+        function openEditRoom(roomId) {
+            const room = roomsData.find(item => Number(item.id) === Number(roomId));
+            if (!room) {
+                toastr.error('Room not found.');
+                return;
+            }
+
+            const parsed = splitRoomDescription(room.description);
+            document.getElementById('editRoomId').value = room.id;
+            document.getElementById('editRoomName').value = room.name || '';
+            document.getElementById('editRoomType').value = parsed.roomType || room.name || 'Junior Suite';
+            document.getElementById('editRoomPrice').value = room.price_per_night || '';
+            document.getElementById('editRoomCapacity').value = room.capacity || 1;
+            document.getElementById('editRoomBeds').value = room.beds || 1;
+            document.getElementById('editRoomBathrooms').value = room.bathrooms || 1;
+            document.getElementById('editRoomDescription').value = parsed.details || '';
+            document.getElementById('editRoomAmenities').value = parsed.amenities || '';
+            document.getElementById('editRoomImage').value = room.image_url || '';
+            document.getElementById('editRoomStatus').value = 'available';
+
+            new bootstrap.Modal(document.getElementById('editRoomModal')).show();
         }
 
-        function confirmDeleteRoom() {
-            toastr.info('Delete room is not enabled yet.');
+        async function updateRoom() {
+            const roomId = document.getElementById('editRoomId').value;
+            const payload = buildRoomPayload('edit');
+            if (!payload || !roomId) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/rooms/${roomId}`, {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    toastr.error(data.message || 'Failed to update room.');
+                    return;
+                }
+
+                toastr.success('Room updated successfully');
+                bootstrap.Modal.getInstance(document.getElementById('editRoomModal'))?.hide();
+                setTimeout(function () {
+                    window.location.reload();
+                }, 700);
+            } catch (error) {
+                console.error(error);
+                toastr.error('Unable to connect to server.');
+            }
+        }
+
+        function openDeleteRoom(roomId) {
+            document.getElementById('deleteRoomId').value = roomId;
+            new bootstrap.Modal(document.getElementById('deleteRoomModal')).show();
+        }
+
+        async function confirmDeleteRoom() {
+            const roomId = document.getElementById('deleteRoomId').value;
+            if (!roomId) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/rooms/${roomId}`, {
+                    method: 'DELETE',
+                    headers: authHeaders()
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    toastr.error(data.message || 'Failed to delete room.');
+                    return;
+                }
+
+                toastr.success('Room deleted successfully');
+                bootstrap.Modal.getInstance(document.getElementById('deleteRoomModal'))?.hide();
+                setTimeout(function () {
+                    window.location.reload();
+                }, 700);
+            } catch (error) {
+                console.error(error);
+                toastr.error('Unable to connect to server.');
+            }
         }
 
         document.getElementById('menuToggle')?.addEventListener('click', function () {

@@ -74,15 +74,7 @@
                                 <a href="/about" class="nav-item nav-link">About</a>
                                 <a href="/service" class="nav-item nav-link">Services</a>
                                 <a href="/room" class="nav-item nav-link active">Rooms</a>
-                                <div class="nav-item dropdown">
-                                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
-                                    <div class="dropdown-menu rounded-0 m-0">
-                                        <a href="/booking" class="dropdown-item">Booking</a>
-                                        <a href="/room-detail" class="dropdown-item" id="dashboardLink" style="display:none;">My Dashboard</a>
-                                        <a href="/team" class="dropdown-item">Our Team</a>
-                                        <a href="/testimonial" class="dropdown-item">Testimonial</a>
-                                    </div>
-                                </div>
+                                <a href="/my-bookings" class="nav-item nav-link" id="dashboardLink" style="display:none;">My Bookings</a>
                                 <a href="/contact" class="nav-item nav-link">Contact</a>
                             </div>
                             <div id="authButtons">
@@ -120,7 +112,13 @@
         <div class="container-xxl py-3">
             <div class="container">
                 <div class="row g-3 justify-content-center">
-                    <div class="col-md-3">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fa fa-search text-primary"></i></span>
+                            <input type="search" class="form-control" id="searchRooms" placeholder="Search rooms">
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-6">
                         <select class="form-select" id="filterRoomType">
                             <option value="">All Room Types</option>
                             <option value="Junior Suite">Junior Suite</option>
@@ -129,16 +127,16 @@
                             <option value="Presidential">Presidential</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-lg-2 col-md-6">
                         <select class="form-select" id="filterPrice">
                             <option value="">Any Price</option>
-                            <option value="0-100">Under $100</option>
-                            <option value="100-200">$100 - $200</option>
-                            <option value="200-300">$200 - $300</option>
-                            <option value="300-500">$300 - $500</option>
+                            <option value="0-100">Under ₹100</option>
+                            <option value="100-200">₹100 - ₹200</option>
+                            <option value="200-300">₹200 - ₹300</option>
+                            <option value="300-500">₹300 - ₹500</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-lg-2 col-md-6">
                         <select class="form-select" id="filterCapacity">
                             <option value="">Any Capacity</option>
                             <option value="2">2 Guests</option>
@@ -146,8 +144,11 @@
                             <option value="6">6 Guests</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-lg-2 col-md-6">
                         <button class="btn btn-primary w-100" id="applyFiltersBtn">Apply Filters</button>
+                    </div>
+                    <div class="col-lg-1 col-md-6">
+                        <button class="btn btn-outline-secondary w-100" id="clearFiltersBtn">Clear</button>
                     </div>
                 </div>
             </div>
@@ -253,7 +254,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <a href="#" id="bookNowFromModal" class="btn btn-primary">Book Now</a>
+                    <a href="/room" id="bookNowFromModal" class="btn btn-primary">View Full Details</a>
                 </div>
             </div>
         </div>

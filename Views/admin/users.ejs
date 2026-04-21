@@ -194,58 +194,7 @@
 </head>
 
 <body>
-    <div id="header"></div>
-
-    <button class="menu-toggle" id="menuToggle">
-        <i class="fas fa-bars"></i>
-    </button>
-
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h3><i class="fas fa-hotel me-2"></i>Hotelier</h3>
-            <p>Admin Dashboard</p>
-        </div>
-        <div class="sidebar-menu">
-            <a href="/admin/index" class="menu-item">
-                <i class="fas fa-tachometer-alt"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="/admin/rooms" class="menu-item">
-                <i class="fas fa-bed"></i>
-                <span>Manage Rooms</span>
-            </a>
-            <a href="/admin/bookings" class="menu-item">
-                <i class="fas fa-calendar-check"></i>
-                <span>Manage Bookings</span>
-            </a>
-            <a href="/admin/users" class="menu-item active">
-                <i class="fas fa-users"></i>
-                <span>Manage Users</span>
-            </a>
-            <a href="/admin/reviews" class="menu-item">
-                <i class="fas fa-star"></i>
-                <span>Manage Reviews</span>
-            </a>
-            <a href="/admin/reports" class="menu-item">
-                <i class="fas fa-chart-line"></i>
-                <span>Reports</span>
-            </a>
-            <a href="/admin/settings" class="menu-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </a>
-            <hr class="mx-3 my-3" style="border-color: rgba(255,255,255,0.1);">
-            <a href="#" class="menu-item" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </a>
-            <a href="/" class="menu-item">
-                <i class="fas fa-globe"></i>
-                <span>View Website</span>
-            </a>
-        </div>
-    </div>
+    <%- include('../partials/admin-header', { activePage: 'users' }) %>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -337,8 +286,14 @@
                                     <td><%= new Date(user.created_at).toISOString().split('T')[0] %></td>
                                     <td><%= user.booking_count || 0 %></td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+                                        <button class="btn btn-sm btn-info me-1" type="button" onclick="viewUser(<%= user.id %>)" title="View User">
                                             <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-primary-custom me-1" type="button" onclick="openEditUser(<%= user.id %>)" title="Edit User">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" type="button" onclick="openDeleteUser(<%= user.id %>)" title="Delete User">
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -549,6 +504,247 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script id="usersSeed" type="application/json"><%- JSON.stringify(users || []) %></script>
+    <script>
+        const usersSeed = document.getElementById('usersSeed');
+        const usersData = usersSeed ? JSON.parse(usersSeed.textContent || '[]') : [];
+        let usersTable;
+        let currentUserId = null;
+
+        function authHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('adminToken') || ''}`
+            };
+        }
+
+        function formatDate(value) {
+            if (!value) {
+                return '-';
+            }
+            return new Date(value).toISOString().split('T')[0];
+        }
+
+        function findUser(userId) {
+            return usersData.find(user => Number(user.id) === Number(userId));
+        }
+
+        async function addUser() {
+            const payload = {
+                full_name: document.getElementById('userName').value.trim(),
+                email: document.getElementById('userEmail').value.trim(),
+                phone: document.getElementById('userPhone').value.trim(),
+                password: document.getElementById('userPassword').value,
+                role: document.getElementById('userRole').value,
+                status: document.getElementById('userStatus').value
+            };
+
+            if (!payload.full_name || !payload.email || !payload.password) {
+                toastr.error('Name, email, and password are required.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/users', {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    toastr.error(data.message || 'Failed to add user.');
+                    return;
+                }
+
+                toastr.success('User added successfully');
+                bootstrap.Modal.getInstance(document.getElementById('addUserModal'))?.hide();
+                document.getElementById('addUserForm').reset();
+                setTimeout(function () {
+                    window.location.reload();
+                }, 700);
+            } catch (error) {
+                console.error(error);
+                toastr.error('Unable to connect to server.');
+            }
+        }
+
+        function openEditUser(userId) {
+            const user = findUser(userId);
+            if (!user) {
+                toastr.error('User not found.');
+                return;
+            }
+
+            document.getElementById('editUserId').value = user.id;
+            document.getElementById('editUserName').value = user.full_name || '';
+            document.getElementById('editUserEmail').value = user.email || '';
+            document.getElementById('editUserPhone').value = user.phone || '';
+            document.getElementById('editUserPassword').value = '';
+            document.getElementById('editUserRole').value = user.role || 'user';
+            document.getElementById('editUserStatus').value = 'active';
+
+            new bootstrap.Modal(document.getElementById('editUserModal')).show();
+        }
+
+        async function updateUser() {
+            const userId = document.getElementById('editUserId').value;
+            const payload = {
+                full_name: document.getElementById('editUserName').value.trim(),
+                email: document.getElementById('editUserEmail').value.trim(),
+                phone: document.getElementById('editUserPhone').value.trim(),
+                password: document.getElementById('editUserPassword').value,
+                role: document.getElementById('editUserRole').value,
+                status: document.getElementById('editUserStatus').value
+            };
+
+            if (!userId || !payload.full_name || !payload.email) {
+                toastr.error('Name and email are required.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/users/${userId}`, {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    toastr.error(data.message || 'Failed to update user.');
+                    return;
+                }
+
+                toastr.success('User updated successfully');
+                bootstrap.Modal.getInstance(document.getElementById('editUserModal'))?.hide();
+                setTimeout(function () {
+                    window.location.reload();
+                }, 700);
+            } catch (error) {
+                console.error(error);
+                toastr.error('Unable to connect to server.');
+            }
+        }
+
+        async function viewUser(userId) {
+            const user = findUser(userId);
+            if (!user) {
+                toastr.error('User not found.');
+                return;
+            }
+
+            currentUserId = user.id;
+            document.getElementById('viewUserAvatar').textContent = (user.full_name || 'U').charAt(0).toUpperCase();
+            document.getElementById('viewUserName').textContent = user.full_name || '-';
+            document.getElementById('viewUserEmail').textContent = user.email || '-';
+            document.getElementById('viewUserPhone').textContent = user.phone || '-';
+            document.getElementById('viewUserRole').innerHTML = `<span class="role-badge ${user.role === 'admin' ? 'role-admin' : 'role-user'}">${user.role || 'user'}</span>`;
+            document.getElementById('viewUserStatus').innerHTML = '<span class="role-badge status-active">active</span>';
+            document.getElementById('viewUserJoined').textContent = formatDate(user.created_at);
+            document.getElementById('viewUserBookings').textContent = user.booking_count || 0;
+            document.getElementById('viewUserBookingsList').innerHTML = '<tr><td colspan="6" class="text-center text-muted">Loading bookings...</td></tr>';
+
+            new bootstrap.Modal(document.getElementById('viewUserModal')).show();
+
+            try {
+                const response = await fetch(`/api/admin/users/${user.id}/bookings`, {
+                    headers: authHeaders()
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    document.getElementById('viewUserBookingsList').innerHTML = '<tr><td colspan="6" class="text-center text-muted">Unable to load bookings.</td></tr>';
+                    return;
+                }
+
+                const bookings = data.bookings || [];
+                document.getElementById('viewUserBookingsList').innerHTML = bookings.length
+                    ? bookings.map(booking => `
+                        <tr>
+                            <td>BK-${String(booking.id).padStart(3, '0')}</td>
+                            <td>${booking.room_name || '-'}</td>
+                            <td>${formatDate(booking.check_in)}</td>
+                            <td>${formatDate(booking.check_out)}</td>
+                            <td>₹${Number(booking.total_price || 0).toFixed(2)}</td>
+                            <td><span class="role-badge status-active">${booking.status || 'pending'}</span></td>
+                        </tr>
+                    `).join('')
+                    : '<tr><td colspan="6" class="text-center text-muted">No bookings found.</td></tr>';
+            } catch (error) {
+                console.error(error);
+                document.getElementById('viewUserBookingsList').innerHTML = '<tr><td colspan="6" class="text-center text-muted">Unable to load bookings.</td></tr>';
+            }
+        }
+
+        function openDeleteUser(userId) {
+            document.getElementById('deleteUserId').value = userId;
+            new bootstrap.Modal(document.getElementById('deleteUserModal')).show();
+        }
+
+        async function confirmDeleteUser() {
+            const userId = document.getElementById('deleteUserId').value;
+            if (!userId) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: authHeaders()
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    toastr.error(data.message || 'Failed to delete user.');
+                    return;
+                }
+
+                toastr.success('User deleted successfully');
+                bootstrap.Modal.getInstance(document.getElementById('deleteUserModal'))?.hide();
+                setTimeout(function () {
+                    window.location.reload();
+                }, 700);
+            } catch (error) {
+                console.error(error);
+                toastr.error('Unable to connect to server.');
+            }
+        }
+
+        function applyUserFilters() {
+            const role = document.getElementById('filterRole').value;
+            const status = document.getElementById('filterStatus').value;
+            const search = document.getElementById('searchUser').value.trim().toLowerCase();
+
+            if (usersTable) {
+                usersTable.column(5).search(role);
+                usersTable.column(6).search(status);
+                usersTable.search(search);
+                usersTable.draw();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            usersTable = $('#usersTable').DataTable({
+                pageLength: 10,
+                responsive: true,
+                order: [[0, 'desc']]
+            });
+
+            document.getElementById('applyUserFilters')?.addEventListener('click', applyUserFilters);
+            document.getElementById('searchUser')?.addEventListener('keyup', function (event) {
+                if (event.key === 'Enter') {
+                    applyUserFilters();
+                }
+            });
+            document.getElementById('editFromViewBtn')?.addEventListener('click', function () {
+                bootstrap.Modal.getInstance(document.getElementById('viewUserModal'))?.hide();
+                if (currentUserId) {
+                    openEditUser(currentUserId);
+                }
+            });
+        });
+    </script>
     <script src="/js/admin-auth.js"></script>
 
 

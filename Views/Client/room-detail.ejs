@@ -137,15 +137,7 @@
                                 <a href="/about" class="nav-item nav-link">About</a>
                                 <a href="/service" class="nav-item nav-link">Services</a>
                                 <a href="/room" class="nav-item nav-link">Rooms</a>
-                                <div class="nav-item dropdown">
-                                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
-                                    <div class="dropdown-menu rounded-0 m-0">
-                                        <a href="/booking" class="dropdown-item">Booking</a>
-                                        <a href="/room-detail" class="dropdown-item" id="dashboardLink" style="display:none;">My Dashboard</a>
-                                        <a href="/team" class="dropdown-item">Our Team</a>
-                                        <a href="/testimonial" class="dropdown-item">Testimonial</a>
-                                    </div>
-                                </div>
+                                <a href="/my-bookings" class="nav-item nav-link" id="dashboardLink" style="display:none;">My Bookings</a>
                                 <a href="/contact" class="nav-item nav-link">Contact</a>
                             </div>
                             <div id="authButtons">
@@ -213,7 +205,7 @@
                             </div>
                             
                             <div class="mb-4">
-                                <h3 class="text-primary mb-3">$<span id="roomPrice"></span> <small class="text-muted fs-6">/ night</small></h3>
+                                <h3 class="text-primary mb-3">₹<span id="roomPrice"></span> <small class="text-muted fs-6">/ night</small></h3>
                             </div>
                             
                             <p id="roomDescription" class="text-muted mb-4"></p>
@@ -245,41 +237,9 @@
                             </div>
                             
                             <div class="mb-4">
-                                <div class="bg-light p-4 rounded">
-                                    <h5 class="mb-3">Quick Booking</h5>
-                                    <div class="row g-3">
-                                        <div class="col-6">
-                                            <div class="date" id="quickDate1" data-target-input="nearest">
-                                                <input type="text" class="form-control datetimepicker-input" id="quickCheckIn" placeholder="Check In" data-target="#quickDate1" data-toggle="datetimepicker">
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="date" id="quickDate2" data-target-input="nearest">
-                                                <input type="text" class="form-control datetimepicker-input" id="quickCheckOut" placeholder="Check Out" data-target="#quickDate2" data-toggle="datetimepicker">
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <select class="form-select" id="quickAdults">
-                                                <option value="1">1 Adult</option>
-                                                <option value="2" selected>2 Adults</option>
-                                                <option value="3">3 Adults</option>
-                                                <option value="4">4 Adults</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-6">
-                                            <select class="form-select" id="quickChildren">
-                                                <option value="0">0 Children</option>
-                                                <option value="1">1 Child</option>
-                                                <option value="2">2 Children</option>
-                                                <option value="3">3 Children</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-12">
-                                            <div id="quickPriceSummary" class="small text-muted mb-2"></div>
-                                            <button class="btn btn-primary w-100" id="bookNowBtn">Book This Room</button>
-                                        </div>
-                                    </div>
-                                </div>
+                                <button class="btn btn-primary w-100 py-3" id="bookNowBtn">
+                                    Book This Room
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -486,7 +446,7 @@
                 await loadReviews(roomId);
                 
                 // Load similar rooms
-                await loadSimilarRooms(room.type);
+                await loadSimilarRooms();
                 
                 // Hide loading, show content
                 loadingDiv.style.display = 'none';
@@ -496,12 +456,6 @@
                 if (isLoggedIn()) {
                     document.getElementById('reviewFormSection').style.display = 'block';
                 }
-                
-                // Initialize date pickers
-                initializeDatePickers();
-                
-                // Setup quick booking calculation
-                setupQuickBooking();
                 
             } catch (error) {
                 console.error('Error loading room:', error);
@@ -534,17 +488,32 @@
         function changeMainImage(src) {
             document.getElementById('mainImage').src = src;
         }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char]));
+        }
+
+        function formatReviewDate(value) {
+            if (!value) return '';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+            return date.toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
         
         async function loadReviews(roomId) {
             try {
-                // This would come from an API endpoint
-                // For now, using mock data
-                const reviews = [
-                    { user: 'John Doe', rating: 5, comment: 'Amazing room! Very comfortable and clean.', date: '2024-02-15' },
-                    { user: 'Jane Smith', rating: 4, comment: 'Great location and excellent service.', date: '2024-02-10' },
-                    { user: 'Mike Johnson', rating: 5, comment: 'Best hotel experience ever!', date: '2024-02-05' }
-                ];
-                
+                const response = await getReviews({ room_id: roomId });
+                const reviews = Array.isArray(response) ? response : (response.reviews || []);
                 const container = document.getElementById('reviewsContainer');
                 if (reviews.length === 0) {
                     container.innerHTML = '<p class="text-muted">No reviews yet. Be the first to review!</p>';
@@ -555,23 +524,27 @@
                     <div class="review-card">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
-                                <strong>${review.user}</strong>
+                                <strong>${escapeHtml(review.guest_name || 'Guest')}</strong>
                                 <div class="rating-stars">${renderStars(review.rating)}</div>
                             </div>
-                            <small class="text-muted">${review.date}</small>
+                            <small class="text-muted">${formatReviewDate(review.created_at)}</small>
                         </div>
-                        <p class="mb-0">${review.comment}</p>
+                        <p class="mb-0">${escapeHtml(review.comment || '')}</p>
                     </div>
                 `).join('');
                 
             } catch (error) {
                 console.error('Error loading reviews:', error);
+                document.getElementById('reviewsContainer').innerHTML = '<p class="text-muted">Reviews could not be loaded right now.</p>';
             }
         }
         
-        async function loadSimilarRooms(roomType) {
+        async function loadSimilarRooms() {
             try {
-                const rooms = await getRooms({ type: roomType, limit: 3 });
+                const response = await getRooms({ limit: 4 });
+                const rooms = (Array.isArray(response) ? response : (response.rooms || response.data || []))
+                    .filter(room => Number(room.id) !== Number(currentRoom?.id))
+                    .slice(0, 3);
                 const container = document.getElementById('similarRoomsContainer');
                 
                 if (rooms.length === 0) {
@@ -582,10 +555,10 @@
                 container.innerHTML = rooms.map(room => `
                     <div class="col-lg-4 col-md-6">
                         <div class="similar-room-card shadow rounded overflow-hidden">
-                            <img class="img-fluid" src="${room.images ? room.images.split(',')[0] : 'img/room-1.jpg'}" alt="${room.name}" style="height: 200px; width: 100%; object-fit: cover;">
+                            <img class="img-fluid" src="${room.images ? room.images.split(',')[0] : 'img/room-1.jpg'}" alt="${escapeHtml(room.name)}" style="height: 200px; width: 100%; object-fit: cover;">
                             <div class="p-4">
-                                <h5 class="mb-2">${room.name}</h5>
-                                <p class="text-primary mb-2">$${room.price_per_night}/night</p>
+                                <h5 class="mb-2">${escapeHtml(room.name)}</h5>
+                                <p class="text-primary mb-2">₹${room.price_per_night}/night</p>
                                 <div class="mb-2">${renderStars(room.rating || 4)}</div>
                                 <a href="/room-detail?id=${room.id}" class="btn btn-sm btn-outline-primary">View Details</a>
                             </div>
@@ -598,60 +571,7 @@
             }
         }
         
-        function initializeDatePickers() {
-            if (typeof moment !== 'undefined') {
-                $('#quickDate1, #quickDate2').datetimepicker({
-                    format: 'YYYY-MM-DD',
-                    minDate: moment(),
-                    useCurrent: false
-                });
-                
-                $('#quickDate1').on('change.datetimepicker', function() {
-                    calculateQuickTotal();
-                });
-                
-                $('#quickDate2').on('change.datetimepicker', function() {
-                    calculateQuickTotal();
-                });
-            }
-        }
-        
-        function calculateQuickTotal() {
-            const checkIn = document.getElementById('quickCheckIn')?.value;
-            const checkOut = document.getElementById('quickCheckOut')?.value;
-            const pricePerNight = currentRoom?.price_per_night || 0;
-            const summaryDiv = document.getElementById('quickPriceSummary');
-            
-            if (!checkIn || !checkOut || !currentRoom) {
-                if (summaryDiv) summaryDiv.textContent = '';
-                return;
-            }
-            
-            const checkInDate = new Date(checkIn);
-            const checkOutDate = new Date(checkOut);
-            const nights = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
-            
-            if (nights <= 0) {
-                if (summaryDiv) summaryDiv.textContent = 'Invalid dates';
-                return;
-            }
-            
-            const subtotal = pricePerNight * nights;
-            const tax = subtotal * 0.12;
-            const total = subtotal + tax;
-            
-            if (summaryDiv) {
-                summaryDiv.innerHTML = `${nights} night(s) • Subtotal: $${subtotal.toFixed(2)} + Tax: $${tax.toFixed(2)} = <strong>$${total.toFixed(2)}</strong>`;
-            }
-        }
-        
-        function setupQuickBooking() {
-            document.getElementById('quickAdults')?.addEventListener('change', calculateQuickTotal);
-            document.getElementById('quickChildren')?.addEventListener('change', calculateQuickTotal);
-            calculateQuickTotal();
-        }
-        
-        // Book Now button
+        // Room-detail booking button
         document.getElementById('bookNowBtn')?.addEventListener('click', function() {
             if (!isLoggedIn()) {
                 toastr.warning('Please login to book this room');
@@ -661,18 +581,7 @@
                 return;
             }
             
-            const checkIn = document.getElementById('quickCheckIn')?.value;
-            const checkOut = document.getElementById('quickCheckOut')?.value;
-            
-            if (!checkIn || !checkOut) {
-                toastr.warning('Please select check-in and check-out dates');
-                return;
-            }
-            
-            const adults = document.getElementById('quickAdults')?.value;
-            const children = document.getElementById('quickChildren')?.value;
-            
-            window.location.href = `/booking?room=${currentRoom?.id}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}`;
+            window.location.href = `/booking?room=${encodeURIComponent(currentRoom?.id || '')}`;
         });
         
         // Review form handling
@@ -707,15 +616,33 @@
                 return;
             }
             
-            // This would call an API to submit review
-            toastr.success('Thank you for your review!');
-            document.getElementById('reviewComment').value = '';
-            currentRating = 0;
-            document.getElementById('reviewRating').value = '0';
-            document.querySelectorAll('.star-select').forEach(s => {
-                s.classList.add('text-muted');
-                s.classList.remove('text-warning');
-            });
+            try {
+                const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+                await createReview({
+                    room_id: currentRoom?.id,
+                    guest_name: user?.name || 'Guest',
+                    rating: currentRating,
+                    comment
+                });
+
+                toastr.success('Thank you for your review!');
+                document.getElementById('reviewComment').value = '';
+                currentRating = 0;
+                document.getElementById('reviewRating').value = '0';
+                document.querySelectorAll('.star-select').forEach(s => {
+                    s.classList.add('text-muted');
+                    s.classList.remove('text-warning');
+                });
+
+                await loadReviews(currentRoom?.id);
+                const refreshedRoom = await getRoomById(currentRoom?.id);
+                currentRoom = refreshedRoom;
+                document.getElementById('ratingStars').innerHTML = renderStars(refreshedRoom.rating || 0);
+                document.getElementById('reviewCount').textContent = `(${refreshedRoom.review_count || 0} reviews)`;
+            } catch (error) {
+                console.error('Error submitting review:', error);
+                toastr.error(error.message || 'Failed to submit review');
+            }
         });
         
         // Load page
