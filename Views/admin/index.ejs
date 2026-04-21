@@ -197,6 +197,20 @@
             color: #721c24;
         }
 
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        #bookingChart {
+            max-width: 100%;
+        }
+
+        #occupancyChart {
+            max-width: 100%;
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 left: -260px;
@@ -323,13 +337,17 @@
             <div class="col-md-8">
                 <div class="recent-table">
                     <h5><i class="fas fa-chart-line me-2 text-primary"></i>Booking Trends</h5>
-                    <canvas id="bookingChart" height="300"></canvas>
+                    <div class="chart-container">
+                        <canvas id="bookingChart"></canvas>
+                    </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="recent-table">
                     <h5><i class="fas fa-chart-pie me-2 text-primary"></i>Room Occupancy</h5>
-                    <canvas id="occupancyChart" height="300"></canvas>
+                    <div class="chart-container">
+                        <canvas id="occupancyChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -391,59 +409,148 @@
     <script src="/js/admin-auth.js"></script>
     <script>
         const dashboardBookings = <%- JSON.stringify(Array.isArray(recentBookings) ? recentBookings : []) %>;
+        let bookingChartInstance = null;
+        let occupancyChartInstance = null;
 
-        document.addEventListener('DOMContentLoaded', function () {
-            if (typeof Chart === 'undefined') return;
+        function initializeCharts() {
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js is not loaded');
+                return;
+            }
 
+            // Destroy existing charts if they exist
+            if (bookingChartInstance) bookingChartInstance.destroy();
+            if (occupancyChartInstance) occupancyChartInstance.destroy();
+
+            // Process booking trend data
             const groupedByDate = dashboardBookings.reduce((acc, booking) => {
                 const key = booking.check_in ? new Date(booking.check_in).toISOString().split('T')[0] : 'No date';
                 acc[key] = (acc[key] || 0) + 1;
                 return acc;
             }, {});
 
-            const bookingLabels = Object.keys(groupedByDate).slice(-7);
+            const bookingLabels = Object.keys(groupedByDate).sort().slice(-7);
             const bookingValues = bookingLabels.map(label => groupedByDate[label]);
 
-            const bookingChart = document.getElementById('bookingChart');
-            if (bookingChart) {
-                new Chart(bookingChart, {
+            // Initialize Booking Trends Chart
+            const bookingChartCtx = document.getElementById('bookingChart');
+            if (bookingChartCtx) {
+                bookingChartInstance = new Chart(bookingChartCtx, {
                     type: 'line',
                     data: {
-                        labels: bookingLabels.length ? bookingLabels : ['No bookings'],
+                        labels: bookingLabels.length ? bookingLabels : ['No Data'],
                         datasets: [{
-                            label: 'Bookings',
+                            label: 'Total Bookings',
                             data: bookingValues.length ? bookingValues : [0],
                             borderColor: '#f3b33d',
-                            backgroundColor: 'rgba(243, 179, 61, 0.15)',
-                            tension: 0.35,
+                            backgroundColor: 'rgba(243, 179, 61, 0.1)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#f3b33d',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            tension: 0.4,
                             fill: true
                         }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: { bottom: 10, left: 10, right: 10, top: 10 }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: {
+                                    font: { size: 12, weight: 'bold' },
+                                    color: '#6c757d',
+                                    padding: 15,
+                                    usePointStyle: true
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1, color: '#6c757d' },
+                                grid: { color: 'rgba(0,0,0,0.05)' }
+                            },
+                            x: {
+                                ticks: { color: '#6c757d' },
+                                grid: { display: false }
+                            }
+                        }
+                    }
                 });
             }
 
+            // Process occupancy status data
             const statusCounts = dashboardBookings.reduce((acc, booking) => {
-                const status = booking.status || 'pending';
+                const status = (booking.status || 'pending').toLowerCase();
                 acc[status] = (acc[status] || 0) + 1;
                 return acc;
             }, {});
 
-            const occupancyChart = document.getElementById('occupancyChart');
-            if (occupancyChart) {
-                new Chart(occupancyChart, {
+            const statusLabels = Object.keys(statusCounts).length ? Object.keys(statusCounts) : ['No Data'];
+            const statusValues = Object.values(statusCounts).length ? Object.values(statusCounts) : [1];
+
+            // Status colors
+            const statusColorMap = {
+                'confirmed': '#28a745',
+                'pending': '#ffc107',
+                'cancelled': '#dc3545',
+                'completed': '#17a2b8'
+            };
+
+            const colors = statusLabels.map(label => statusColorMap[label.toLowerCase()] || '#6c757d');
+
+            // Initialize Room Occupancy Chart
+            const occupancyChartCtx = document.getElementById('occupancyChart');
+            if (occupancyChartCtx) {
+                occupancyChartInstance = new Chart(occupancyChartCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: Object.keys(statusCounts).length ? Object.keys(statusCounts) : ['No bookings'],
+                        labels: statusLabels,
                         datasets: [{
-                            data: Object.values(statusCounts).length ? Object.values(statusCounts) : [1],
-                            backgroundColor: ['#f3b33d', '#28a745', '#dc3545', '#17a2b8']
+                            data: statusValues,
+                            backgroundColor: colors,
+                            borderColor: '#fff',
+                            borderWidth: 3
                         }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: { bottom: 10, left: 10, right: 10, top: 10 }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    font: { size: 12, weight: '500' },
+                                    color: '#6c757d',
+                                    padding: 15,
+                                    usePointStyle: true,
+                                    pointStyle: 'circle'
+                                }
+                            }
+                        }
+                    }
                 });
             }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeCharts();
         });
+
+        // Refresh charts every 30 seconds for real-time updates
+        setInterval(function () {
+            initializeCharts();
+        }, 30000);
     </script>
 
 
